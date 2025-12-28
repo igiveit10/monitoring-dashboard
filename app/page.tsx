@@ -59,6 +59,7 @@ export default function Dashboard() {
   // Runs 로드
   useEffect(() => {
     loadRuns()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 선택된 Run이 변경되면 대시보드 데이터 로드
@@ -66,6 +67,7 @@ export default function Dashboard() {
     if (selectedRunDate) {
       loadDashboardData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRunDate, baselineRunDate])
 
   const loadRuns = async () => {

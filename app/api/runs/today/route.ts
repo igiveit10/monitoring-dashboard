@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { getTodayDateString } from '@/lib/utils'
 import { checkUrlsWithConcurrency } from '@/lib/checker'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST() {
   try {
     const today = getTodayDateString()

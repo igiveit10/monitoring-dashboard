@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { checkUrl } from '@/lib/checker'
 import { getTodayDateString } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { targetId: string } }
