@@ -20,6 +20,30 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* 테이블 리사이즈 스타일 */
+table th {
+  position: relative;
+}
+
+table th .resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+table th .resize-handle:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+table th.resizing {
+  user-select: none;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

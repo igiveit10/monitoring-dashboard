@@ -14,8 +14,9 @@ model Target {
   id            String   @id @default(cuid())
   keyword       String
   url           String   @unique
-  currentStatus String?
-  myComment     String?
+  currentStatus String?  // 정답셋 통검노출: "노출" 또는 "미노출"
+  csvPdfExposure Boolean @default(false) // 정답셋 PDF 노출 (비고와 독립적)
+  myComment     String?  // 참고용 비고 텍스트 (PDF 노출과 무관)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   runResults    RunResult[]

@@ -4,37 +4,41 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "tsx scripts/ensure-data-dirs.ts && prisma generate && next build",
+    "start": "tsx scripts/ensure-data-dirs.ts && next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "import:qa": "tsx scripts/import-qa-data.ts",
+    "postinstall": "prisma generate",
+    "ensure-dirs": "tsx scripts/ensure-data-dirs.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.19.1",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.1",
-    "csv-parse": "^5.5.6",
-    "lucide-react": "^0.427.0",
-    "next": "^14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.5.2"
+    "next": "^14.2.5",
+    "@prisma/client": "^5.19.1",
+    "csv-parse": "^5.5.6",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.2",
+    "lucide-react": "^0.427.0"
   },
   "devDependencies": {
+    "typescript": "^5.5.4",
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.9",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.5",
-    "postcss": "^8.4.41",
     "prisma": "^5.19.1",
-    "tailwindcss": "^3.4.9",
-    "tsx": "^4.21.0",
-    "typescript": "^5.5.4"
+    "tsx": "^4.19.1"
   }
 }
+

@@ -8,6 +8,17 @@ URL 모니터링 및 체크 대시보드입니다. 사용자가 업로드한 URL
 
 모든 데이터는 `data/` 폴더 내부에 영구 저장되며, 세션/재실행/재부팅 후에도 유지됩니다.
 
+## 배포
+
+외부에서 접속 가능하도록 배포하려면 [DEPLOYMENT.md](./DEPLOYMENT.md)를 참조하세요.
+
+**빠른 배포 (Railway 추천):**
+1. [Railway](https://railway.app)에 가입
+2. GitHub 저장소 연결
+3. 자동 배포 완료
+4. 환경 변수 설정: `DATABASE_URL=file:./data/app.db`
+5. 볼륨 마운트: `/app/data` 경로에 볼륨 생성
+
 ## 기술 스택
 
 - Next.js 14+ (App Router) + TypeScript
