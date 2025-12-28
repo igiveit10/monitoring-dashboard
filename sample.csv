@@ -1,0 +1,5 @@
+keyword,url,currentStatus,myComment
+테스트키워드1,https://www.naver.com,노출,네이버 메인
+테스트키워드2,https://www.google.com,미노출,구글 메인
+테스트키워드3,https://academic.naver.com,노출,학술검색
+

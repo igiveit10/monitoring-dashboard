@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Target {
+  id            String   @id @default(cuid())
+  keyword       String
+  url           String   @unique
+  currentStatus String?
+  myComment     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  runResults    RunResult[]
+
+  @@index([url])
+}
+
+model Run {
+  id        String      @id @default(cuid())
+  runDate   String      @unique // YYYY-MM-DD format
+  createdAt DateTime    @default(now())
+  results   RunResult[]
+}
+
+model RunResult {
+  id                 String   @id @default(cuid())
+  runId              String
+  targetId           String
+  foundAcademicNaver Boolean  @default(false)
+  isPdf              Boolean  @default(false)
+  httpStatus         Int?
+  finalUrl           String?
+  checkedAt          DateTime @default(now())
+  errorMessage       String?
+  rawEvidencePath    String?
+
+  run    Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
+  target Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, targetId])
+  @@index([runId])
+  @@index([targetId])
+}
+
+model UploadHistory {
+  id          String   @id @default(cuid())
+  fileName    String
+  filePath    String
+  recordCount Int
+  uploadedAt  DateTime @default(now())
+}
+
