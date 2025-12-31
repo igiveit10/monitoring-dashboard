@@ -121,7 +121,7 @@ async function main() {
     let skippedCount = 0
 
     // 각 runDate별로 처리
-    for (const [runDate, records] of runsByDate.entries()) {
+    for (const [runDate, records] of Array.from(runsByDate.entries())) {
       // 날짜 정규화
       const normalizedRunDate = normalizeRunDate(runDate)
       if (runDate !== normalizedRunDate) {
