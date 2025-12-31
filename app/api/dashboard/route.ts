@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { compareResults } from '@/lib/diff'
+import { sortTargetsByAnswerSet } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -99,12 +100,14 @@ export async function GET(request: NextRequest) {
 
     // 전체 targets 개수 (CSV에서 가져온 데이터 기준)
     const totalTargets = await prisma.target.count()
+    console.log(`[Dashboard API] Total targets in DB: ${totalTargets}`)
 
     // 테이블 데이터 준비 및 정답셋(CSV 원본) 기준 KPI 계산
     // Run 결과가 있는 targets와 없는 targets 모두 포함
-    const allTargets = await prisma.target.findMany({
-      orderBy: { createdAt: 'desc' },
-    })
+    const allTargetsRaw = await prisma.target.findMany()
+    // 정답셋 기준으로 정렬: YY > YN > NY > NN
+    const allTargets = sortTargetsByAnswerSet(allTargetsRaw)
+    console.log(`[Dashboard API] Fetched ${allTargets.length} targets from DB (sorted by answer set)`)
 
     // 정답셋(CSV 원본) 기준 KPI 계산
     const csv통검노출Count = allTargets.filter(

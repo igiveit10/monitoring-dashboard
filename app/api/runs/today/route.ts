@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
-import { getTodayDateString } from '../../../../lib/utils'
+import { getTodayDateString, sortTargetsByAnswerSet } from '../../../../lib/utils'
 import { checkUrlsWithConcurrency } from '../../../../lib/checker'
 
 export const dynamic = 'force-dynamic'
@@ -22,7 +22,10 @@ export async function POST() {
     }
 
     // 모든 targets 가져오기
-    const targets = await prisma.target.findMany()
+    const targetsRaw = await prisma.target.findMany()
+    // 정답셋 기준으로 정렬: YY > YN > NY > NN (모니터링 실행 순서)
+    const targets = sortTargetsByAnswerSet(targetsRaw)
+    console.log(`[Runs API] Fetched ${targets.length} targets (sorted by answer set: YY > YN > NY > NN)`)
 
     if (targets.length === 0) {
       return NextResponse.json({
@@ -33,7 +36,7 @@ export async function POST() {
       })
     }
 
-    // 체크 실행 (동시성 5)
+    // 체크 실행 (동시성 5) - 정렬된 순서대로 처리됨
     const checkData = targets.map((t) => ({ id: t.id, url: t.url }))
     const results = await checkUrlsWithConcurrency(checkData, 5)
 
