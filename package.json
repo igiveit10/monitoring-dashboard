@@ -7,19 +7,19 @@
     "npm": "10.x"
   },
   "scripts": {
-  "dev": "next dev",
-  "build": "npx tsx scripts/ensure-data-dirs.ts && npx next build",
-  "start": "npx tsx scripts/ensure-data-dirs.ts && npx next start -p $PORT",
-  "lint": "next lint",
-  "db:generate": "prisma generate",
-  "db:migrate": "prisma migrate dev",
-  "db:push": "prisma db push",
-  "db:studio": "prisma studio",
-  "db:seed": "npx tsx prisma/seed.ts",
-  "import:qa": "npx tsx scripts/import-qa-data.ts",
-  "postinstall": "prisma generate",
-  "ensure-dirs": "npx tsx scripts/ensure-data-dirs.ts"
-},
+    "dev": "next dev",
+    "build": "npx tsx scripts/ensure-data-dirs.ts && npx next build",
+    "start": "npx tsx scripts/ensure-data-dirs.ts && npx next start -p $PORT",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "npx tsx prisma/seed.ts",
+    "import:qa": "npx tsx scripts/import-qa-data.ts",
+    "postinstall": "prisma generate",
+    "ensure-dirs": "npx tsx scripts/ensure-data-dirs.ts"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "class-variance-authority": "^0.7.0",
