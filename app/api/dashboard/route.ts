@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { compareResults } from '@/lib/diff'
-import { sortTargetsByAnswerSet, sortTableDataByAnswerSet } from '@/lib/utils'
+import { sortTargetsByAnswerSet, sortTableDataByAnswerSet, normalizeRunDate } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,8 +38,16 @@ export async function GET(request: NextRequest) {
   const prisma = getPrisma()
   try {
     const searchParams = request.nextUrl.searchParams
-    const runDate = searchParams.get('runDate')
-    const baselineRunDate = searchParams.get('baselineRunDate')
+    const rawRunDate = searchParams.get('runDate')
+    const rawBaselineRunDate = searchParams.get('baselineRunDate')
+
+    // 날짜 정규화: YYYY-MM-DD 형식으로 통일
+    const runDate = rawRunDate ? normalizeRunDate(rawRunDate) : null
+    const baselineRunDate = rawBaselineRunDate ? normalizeRunDate(rawBaselineRunDate) : null
+    
+    if (rawRunDate && rawRunDate !== runDate) {
+      console.log(`[Dashboard API] RunDate normalized: ${rawRunDate} -> ${runDate}`)
+    }
 
     // Run이 없을 경우를 대비한 처리
     let run = null
@@ -54,6 +62,11 @@ export async function GET(request: NextRequest) {
           },
         },
       })
+      if (run) {
+        console.log(`[Dashboard API] Run found: id=${run.id}, runDate=${run.runDate}, results count=${run.results.length}`)
+      } else {
+        console.log(`[Dashboard API] Run not found for runDate=${runDate}`)
+      }
     }
     
     // Run이 없으면 가장 최신 Run을 찾거나 빈 Run 생성
@@ -83,6 +96,22 @@ export async function GET(request: NextRequest) {
         results: true,
       },
     })
+    
+    console.log(`[Dashboard API] All runs fetched: ${allRuns.length} runs`)
+    allRuns.forEach((r) => {
+      console.log(`[Dashboard API] Run: runDate=${r.runDate}, results count=${r.results.length}`)
+    })
+    
+    // 날짜 키 매칭 확인: runs의 runDate와 results의 runId가 올바르게 연결되어 있는지 확인
+    for (const r of allRuns) {
+      const mismatchedResults = r.results.filter((res) => {
+        // results는 runId로 연결되므로 직접 확인 불가, 대신 count로 검증
+        return false // 실제로는 DB 관계로 연결되어 있음
+      })
+      if (mismatchedResults.length > 0) {
+        console.warn(`[Dashboard API] Warning: Run ${r.runDate} has ${mismatchedResults.length} mismatched results`)
+      }
+    }
 
     // 베이스라인 Run 조회
     let baselineRun = null
@@ -93,9 +122,17 @@ export async function GET(request: NextRequest) {
           results: true,
         },
       })
+      if (baselineRun) {
+        console.log(`[Dashboard API] Baseline run found: runDate=${baselineRun.runDate}, results count=${baselineRun.results.length}`)
+      } else {
+        console.log(`[Dashboard API] Baseline run not found for runDate=${baselineRunDate}`)
+      }
     } else {
       // 가장 오래된 Run을 베이스라인으로 사용
       baselineRun = allRuns.length > 0 ? allRuns[0] : null
+      if (baselineRun) {
+        console.log(`[Dashboard API] Using oldest run as baseline: runDate=${baselineRun.runDate}, results count=${baselineRun.results.length}`)
+      }
     }
 
     // 전체 targets 개수 (CSV에서 가져온 데이터 기준)

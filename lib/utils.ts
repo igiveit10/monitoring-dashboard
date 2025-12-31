@@ -19,6 +19,44 @@ export function getTodayDateString(): string {
 }
 
 /**
+ * 날짜 문자열을 YYYY-MM-DD 형식으로 정규화
+ * 다양한 입력 형식을 처리:
+ * - ISO string: "2025-12-31T00:00:00.000Z" -> "2025-12-31"
+ * - Date object: new Date() -> "YYYY-MM-DD"
+ * - 이미 YYYY-MM-DD 형식: 그대로 반환
+ * 
+ * @param dateInput 날짜 입력 (string | Date | null | undefined)
+ * @returns YYYY-MM-DD 형식의 날짜 문자열
+ */
+export function normalizeRunDate(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) {
+    return getTodayDateString()
+  }
+  
+  // 이미 YYYY-MM-DD 형식인지 확인
+  if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+    return dateInput
+  }
+  
+  // Date 객체 또는 ISO string을 Date로 변환
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput
+  
+  // 유효한 날짜인지 확인
+  if (isNaN(date.getTime())) {
+    console.warn(`[normalizeRunDate] Invalid date input: ${dateInput}, using today`)
+    return getTodayDateString()
+  }
+  
+  // Asia/Seoul 기준으로 날짜 추출
+  const seoulTime = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  const year = seoulTime.getFullYear()
+  const month = String(seoulTime.getMonth() + 1).padStart(2, '0')
+  const day = String(seoulTime.getDate()).padStart(2, '0')
+  
+  return `${year}-${month}-${day}`
+}
+
+/**
  * 정답셋 기준으로 targets를 정렬하는 함수
  * 정렬 우선순위: YY (3) > YN (2) > NY (1) > NN (0)
  * 같은 그룹 내에서는 id asc로 정렬

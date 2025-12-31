@@ -199,9 +199,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // 업로드 후 전체 targets 개수 확인
+    const totalTargetsAfterUpload = await prisma.target.count()
+    console.log(`Upload completed: ${recordCount} records processed, total targets in DB: ${totalTargetsAfterUpload}`)
+
     return NextResponse.json({
       success: true,
       recordCount,
+      totalTargets: totalTargetsAfterUpload,
       message: `Successfully uploaded ${recordCount} records`,
     })
   } catch (error) {
