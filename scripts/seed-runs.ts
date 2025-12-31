@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { parse } from 'csv-parse/sync'
 import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
+import { normalizeRunDate } from '../lib/utils'
 
 // DATABASE_URL 환경변수에서 Prisma 클라이언트 생성
 const getPrisma = () => {
@@ -40,6 +41,23 @@ async function main() {
   const prisma = getPrisma()
 
   try {
+    // FORCE_SEED 옵션 확인
+    const forceSeed = process.env.FORCE_SEED === 'true'
+    console.log(`[SEED-RUNS] FORCE_SEED=${forceSeed}`)
+
+    // 기존 runs 개수 확인
+    const existingRunsCount = await prisma.run.count()
+    console.log(`[SEED-RUNS] Existing runs count=${existingRunsCount}`)
+
+    // FORCE_SEED가 false이고 runs가 이미 있으면 스킵 (재시작 시 불필요한 시드 방지)
+    // 주의: 이렇게 하면 CSV에 있는 초기 데이터도 시드되지 않지만, 
+    // 사용자가 추가한 모니터링 데이터를 보호하는 것이 더 중요함
+    if (!forceSeed && existingRunsCount > 0) {
+      console.log(`[SEED-RUNS] Runs already exist (count=${existingRunsCount}), skipping seed. Set FORCE_SEED=true to force re-seed.`)
+      console.log(`[SEED-RUNS] This prevents overwriting user-added monitoring data on server restart.`)
+      process.exit(0)
+    }
+
     // CSV 파일 경로 확인 (우선순위: data/runs.csv → src/data/runs.csv)
     const dataRunsCsvPath = join(process.cwd(), 'data', 'runs.csv')
     const srcRunsCsvPath = join(process.cwd(), 'src', 'data', 'runs.csv')
