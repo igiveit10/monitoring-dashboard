@@ -206,16 +206,23 @@ async function main() {
     console.log(`[SEED] inserted=${createdCount}, skipped=${skippedCount}`)
     console.log(`[SEED] target count after=${afterCount}`)
     
-    if (afterCount === beforeCount && createdCount === 0) {
-      const errorMsg = `[SEED] ERROR: no records inserted`
-      console.error(errorMsg)
-      throw new Error(errorMsg)
-    }
-    
-    if (afterCount <= beforeCount) {
-      const errorMsg = `[SEED] ERROR: target count did not increase`
-      console.error(errorMsg)
-      throw new Error(errorMsg)
+    // FORCE_SEED 모드에서는 count 증가 검증 스킵
+    if (!forceSeed) {
+      // 일반 seed 모드에서만 검증
+      if (afterCount === beforeCount && createdCount === 0) {
+        const errorMsg = `[SEED] ERROR: no records inserted`
+        console.error(errorMsg)
+        throw new Error(errorMsg)
+      }
+      
+      if (afterCount <= beforeCount) {
+        const errorMsg = `[SEED] ERROR: target count did not increase`
+        console.error(errorMsg)
+        throw new Error(errorMsg)
+      }
+    } else {
+      // FORCE_SEED 모드에서는 삭제 후 재삽입이므로 count 증가 보장 안 됨
+      console.log(`[SEED] FORCE_SEED mode: skipping count validation`)
     }
     
     console.log(`[SEED] completed successfully`)
