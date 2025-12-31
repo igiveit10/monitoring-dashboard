@@ -1132,20 +1132,10 @@ export default function Dashboard() {
                               targetId,
                               foundAcademicNaver: data.통검노출 === 'Y',
                               isPdf: data.pdf노출 === 'Y',
+                              comment: data.비고 || null, // 비고도 함께 전달
                             }),
                           })
                         )
-
-                        const originalRow = dashboardData.tableData.find((r) => r.id === targetId)
-                        if (originalRow && originalRow.myComment !== data.비고) {
-                          ps.push(
-                            fetch(`/api/targets/${targetId}`, {
-                              method: 'PATCH',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ myComment: data.비고 || null }),
-                            })
-                          )
-                        }
 
                         return Promise.all(ps)
                       })
