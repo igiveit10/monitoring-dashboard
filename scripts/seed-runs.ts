@@ -122,22 +122,33 @@ async function main() {
 
     // 각 runDate별로 처리
     for (const [runDate, records] of runsByDate.entries()) {
+      // 날짜 정규화
+      const normalizedRunDate = normalizeRunDate(runDate)
+      if (runDate !== normalizedRunDate) {
+        console.log(`[SEED-RUNS] RunDate normalized: ${runDate} -> ${normalizedRunDate}`)
+      }
+
       // Run 생성 또는 조회
       let run = await prisma.run.findUnique({
-        where: { runDate },
+        where: { runDate: normalizedRunDate },
       })
 
       if (!run) {
         run = await prisma.run.create({
           data: {
-            runDate,
+            runDate: normalizedRunDate,
           },
         })
         runCreatedCount++
-        console.log(`[SEED-RUNS] Created run for ${runDate}`)
+        console.log(`[SEED-RUNS] Created run for ${normalizedRunDate}`)
       } else {
+        // FORCE_SEED가 아니면 기존 Run의 결과를 보존 (덮어쓰지 않음)
+        if (!forceSeed) {
+          console.log(`[SEED-RUNS] Run ${normalizedRunDate} already exists, skipping to preserve user data`)
+          continue
+        }
         runUpdatedCount++
-        console.log(`[SEED-RUNS] Run ${runDate} already exists, updating results`)
+        console.log(`[SEED-RUNS] Run ${normalizedRunDate} already exists, updating results (FORCE_SEED=true)`)
       }
 
       // 각 레코드를 RunResult로 처리
