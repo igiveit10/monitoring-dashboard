@@ -6,13 +6,24 @@ export const dynamic = 'force-dynamic'
 
 // API 라우트에서 직접 Prisma 클라이언트 생성 (환경 변수 보장)
 const getPrisma = () => {
-  const databaseUrl = process.env.DATABASE_URL
+  const rawDatabaseUrl = process.env.DATABASE_URL ?? ""
+  const databaseUrl = rawDatabaseUrl.replace(/\s/g, "") // 개행/공백 제거
+  
   if (!databaseUrl) {
     throw new Error('DATABASE_URL 환경 변수가 설정되지 않았습니다')
   }
-  if (!databaseUrl.startsWith('file:')) {
+  
+  let parsed: URL
+  try {
+    parsed = new URL(databaseUrl)
+  } catch {
     throw new Error(`DATABASE_URL이 올바른 형식이 아닙니다: ${databaseUrl}`)
   }
+  
+  if (parsed.protocol !== "postgresql:" && parsed.protocol !== "postgres:") {
+    throw new Error(`DATABASE_URL 프로토콜이 postgres가 아닙니다: ${parsed.protocol}`)
+  }
+  
   return new PrismaClient({
     datasources: {
       db: {
