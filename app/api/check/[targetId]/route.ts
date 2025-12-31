@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 import { checkUrl } from '../../../../lib/checker'
-import { getTodayDateString } from '@/lib/utils'
+import { getTodayDateString } from '../../../../lib/utils'
 
 export const dynamic = 'force-dynamic'
 
