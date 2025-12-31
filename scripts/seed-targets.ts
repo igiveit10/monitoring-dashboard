@@ -48,7 +48,13 @@ async function main() {
     const beforeCount = await prisma.target.count()
     console.log(`[SEED] target count before=${beforeCount}`)
 
-    // 3. FORCE_SEED가 true이면 기존 데이터 삭제
+    // 3. FORCE_SEED가 false이고 데이터가 이미 있으면 스킵 (재시작 시 불필요한 시드 방지)
+    if (!forceSeed && beforeCount > 0) {
+      console.log(`[SEED] Targets already exist (count=${beforeCount}), skipping seed. Set FORCE_SEED=true to force re-seed.`)
+      process.exit(0)
+    }
+
+    // 4. FORCE_SEED가 true이면 기존 데이터 삭제
     if (forceSeed && beforeCount > 0) {
       console.log(`[SEED] FORCE_SEED=true, deleting ${beforeCount} existing targets...`)
       await prisma.target.deleteMany({})
