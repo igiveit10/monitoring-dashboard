@@ -48,28 +48,35 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const result = await prisma.runResult.upsert({
-      where: {
-        runId_targetId: {
+    let result
+    try {
+      result = await prisma.runResult.upsert({
+        where: {
+          runId_targetId: {
+            runId: run.id,
+            targetId,
+          },
+        },
+        update: {
+          foundAcademicNaver: foundAcademicNaver ?? false,
+          isPdf: isPdf ?? false,
+          checkedAt: new Date(),
+        },
+        create: {
           runId: run.id,
           targetId,
+          foundAcademicNaver: foundAcademicNaver ?? false,
+          isPdf: isPdf ?? false,
         },
-      },
-      update: {
-        foundAcademicNaver: foundAcademicNaver ?? false,
-        isPdf: isPdf ?? false,
-        checkedAt: new Date(),
-      },
-      create: {
-        runId: run.id,
-        targetId,
-        foundAcademicNaver: foundAcademicNaver ?? false,
-        isPdf: isPdf ?? false,
-      },
-    })
+      })
 
-    const action = existingResult ? 'updated' : 'created'
-    console.log(`[Monitoring API] RunResult ${action}: runId=${run.id}, targetId=${targetId}, foundAcademicNaver=${result.foundAcademicNaver}, isPdf=${result.isPdf}`)
+      const action = existingResult ? 'updated' : 'created'
+      console.log(`[Monitoring API] RunResult ${action}: runId=${run.id}, targetId=${targetId}, foundAcademicNaver=${result.foundAcademicNaver}, isPdf=${result.isPdf}, resultId=${result.id}`)
+    } catch (upsertError: any) {
+      console.error(`[Monitoring API] Upsert error for runId=${run.id}, targetId=${targetId}:`, upsertError)
+      console.error(`[Monitoring API] Error code: ${upsertError.code}, message: ${upsertError.message}`)
+      throw upsertError
+    }
 
     // Target의 비고 업데이트 (comment가 제공된 경우)
     // 비고는 참고용 텍스트일 뿐이며, 정답셋의 PDF 노출과는 무관
