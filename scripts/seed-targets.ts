@@ -231,7 +231,7 @@ async function main() {
               url,
               currentStatus,
               csvPdfExposure,
-              myComment,
+              myComment: csvNote,
             },
           })
           createdCount++

@@ -49,13 +49,21 @@ async function main() {
     const existingRunsCount = await prisma.run.count()
     console.log(`[SEED-RUNS] Existing runs count=${existingRunsCount}`)
 
-    // FORCE_SEED가 false이고 runs가 이미 있으면 스킵 (재시작 시 불필요한 시드 방지)
-    // 주의: 이렇게 하면 CSV에 있는 초기 데이터도 시드되지 않지만, 
-    // 사용자가 추가한 모니터링 데이터를 보호하는 것이 더 중요함
+    // 멱등성 보장: FORCE_SEED가 false이고 runs가 이미 있으면 절대 건드리지 않음
+    // 사용자가 추가한 모니터링 데이터를 보호하는 것이 최우선
     if (!forceSeed && existingRunsCount > 0) {
-      console.log(`[SEED-RUNS] Runs already exist (count=${existingRunsCount}), skipping seed. Set FORCE_SEED=true to force re-seed.`)
+      console.log(`[SEED-RUNS] Runs already exist (count=${existingRunsCount}), skipping seed completely.`)
       console.log(`[SEED-RUNS] This prevents overwriting user-added monitoring data on server restart.`)
+      console.log(`[SEED-RUNS] To force re-seed, set FORCE_SEED=true (WARNING: will delete all existing runs)`)
       process.exit(0)
+    }
+
+    // FORCE_SEED=true일 때만 기존 runs 삭제 (매우 위험한 작업)
+    if (forceSeed && existingRunsCount > 0) {
+      console.log(`[SEED-RUNS] WARNING: FORCE_SEED=true, deleting ${existingRunsCount} existing runs...`)
+      await prisma.runResult.deleteMany({}) // 먼저 결과 삭제
+      await prisma.run.deleteMany({}) // 그 다음 run 삭제
+      console.log(`[SEED-RUNS] Deleted all existing runs and results`)
     }
 
     // CSV 파일 경로 확인 (우선순위: data/runs.csv → src/data/runs.csv)
@@ -142,13 +150,12 @@ async function main() {
         runCreatedCount++
         console.log(`[SEED-RUNS] Created run for ${normalizedRunDate}`)
       } else {
-        // FORCE_SEED가 아니면 기존 Run의 결과를 보존 (덮어쓰지 않음)
-        if (!forceSeed) {
-          console.log(`[SEED-RUNS] Run ${normalizedRunDate} already exists, skipping to preserve user data`)
-          continue
-        }
-        runUpdatedCount++
-        console.log(`[SEED-RUNS] Run ${normalizedRunDate} already exists, updating results (FORCE_SEED=true)`)
+        // 멱등성 보장: 기존 Run이 있으면 절대 건드리지 않음
+        // FORCE_SEED=true일 때는 이미 위에서 모든 runs를 삭제했으므로 여기 도달하면 안 됨
+        // 하지만 방어적 코딩: 혹시 모를 경우를 대비해 스킵
+        console.log(`[SEED-RUNS] Run ${normalizedRunDate} already exists, skipping to preserve user data`)
+        console.log(`[SEED-RUNS] This should not happen if FORCE_SEED logic worked correctly`)
+        continue
       }
 
       // 각 레코드를 RunResult로 처리
