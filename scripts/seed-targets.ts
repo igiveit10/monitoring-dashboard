@@ -46,15 +46,9 @@ async function main() {
 
     // 2. 작업 전 target count 확인
     const beforeCount = await prisma.target.count()
-    console.log(`[SEED] target count=${beforeCount}`)
+    console.log(`[SEED] target count before=${beforeCount}`)
 
-    // 3. FORCE_SEED가 아니고 이미 데이터가 있으면 스킵
-    if (!forceSeed && beforeCount > 0) {
-      console.log(`[SEED] already seeded, skip`)
-      process.exit(0)
-    }
-
-    // 4. FORCE_SEED가 true이면 기존 데이터 삭제
+    // 3. FORCE_SEED가 true이면 기존 데이터 삭제
     if (forceSeed && beforeCount > 0) {
       console.log(`[SEED] FORCE_SEED=true, deleting ${beforeCount} existing targets...`)
       await prisma.target.deleteMany({})
@@ -240,23 +234,23 @@ async function main() {
     console.log(`[SEED] inserted=${createdCount}, updated=${updatedCount}, skipped=${skippedCount}`)
     console.log(`[SEED] target count before=${beforeCount}, after=${afterCount}`)
     
-    // FORCE_SEED 모드에서는 count 증가 검증 스킵
-    if (!forceSeed) {
-      // 일반 seed 모드에서만 검증
-      if (afterCount === beforeCount && createdCount === 0) {
-        const errorMsg = `[SEED] ERROR: no records inserted`
-        console.error(errorMsg)
-        throw new Error(errorMsg)
-      }
-      
-      if (afterCount <= beforeCount) {
-        const errorMsg = `[SEED] ERROR: target count did not increase`
-        console.error(errorMsg)
-        throw new Error(errorMsg)
-      }
-    } else {
-      // FORCE_SEED 모드에서는 삭제 후 재삽입이므로 count 증가 보장 안 됨
+    // 검증: 작업이 수행되었는지 확인
+    if (createdCount === 0 && updatedCount === 0 && skippedCount === records.length) {
+      const errorMsg = `[SEED] ERROR: no records processed (all skipped)`
+      console.error(errorMsg)
+      throw new Error(errorMsg)
+    }
+    
+    // FORCE_SEED 모드에서는 count 증가 검증 스킵 (삭제 후 재삽입이므로)
+    if (forceSeed) {
       console.log(`[SEED] FORCE_SEED mode: skipping count validation`)
+    } else {
+      // 일반 모드: 업데이트만 있어도 성공 (count는 증가하지 않을 수 있음)
+      if (createdCount === 0 && updatedCount === 0) {
+        const errorMsg = `[SEED] ERROR: no records created or updated`
+        console.error(errorMsg)
+        throw new Error(errorMsg)
+      }
     }
     
     console.log(`[SEED] completed successfully`)
