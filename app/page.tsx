@@ -303,6 +303,29 @@ export default function Dashboard() {
 
   // 정렬
   const sortedTableData = [...filteredTableData].sort((a, b) => {
+    // 기본 정렬: 정답셋 기준 (YY > YN > NY > NN)
+    if (sortBy === 'answerSet') {
+      // answer_search_exposed 계산 (csv통검노출이 'Y'이면 'Y', 아니면 'N')
+      const aSearchExposed = a.csv통검노출 === 'Y' ? 'Y' : 'N'
+      const bSearchExposed = b.csv통검노출 === 'Y' ? 'Y' : 'N'
+      
+      // answer_pdf_exposed 계산 (csvPdf노출이 'Y'이면 'Y', 아니면 'N')
+      const aPdfExposed = a.csvPdf노출 === 'Y' ? 'Y' : 'N'
+      const bPdfExposed = b.csvPdf노출 === 'Y' ? 'Y' : 'N'
+      
+      // score 계산: (answer_search_exposed=='Y'?2:0) + (answer_pdf_exposed=='Y'?1:0)
+      const aScore = (aSearchExposed === 'Y' ? 2 : 0) + (aPdfExposed === 'Y' ? 1 : 0)
+      const bScore = (bSearchExposed === 'Y' ? 2 : 0) + (bPdfExposed === 'Y' ? 1 : 0)
+      
+      // score desc (높은 점수부터)
+      if (aScore !== bScore) {
+        return sortDirection === 'desc' ? bScore - aScore : aScore - bScore
+      }
+      
+      // tie-breaker: id asc
+      return a.id.localeCompare(b.id)
+    }
+
     let comparison = 0
 
     if (sortBy === 'id') comparison = a.id.localeCompare(b.id)
