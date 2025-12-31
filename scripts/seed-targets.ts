@@ -57,24 +57,29 @@ async function main() {
 
     console.log('[SEED] proceeding with seed...')
 
-    // 5. 파일 존재 확인 (src/data/targets.csv 우선, 없으면 data/targets.csv)
-    const srcTargetsCsvPath = join(process.cwd(), 'src', 'data', 'targets.csv')
+    // 5. 파일 존재 확인 (우선순위: data/targets.csv → src/data/targets.csv → sample.csv)
     const dataTargetsCsvPath = join(process.cwd(), 'data', 'targets.csv')
+    const srcTargetsCsvPath = join(process.cwd(), 'src', 'data', 'targets.csv')
+    const sampleCsvPath = join(process.cwd(), 'sample.csv')
 
     let csvPath: string | null = null
 
-    if (existsSync(srcTargetsCsvPath)) {
+    if (existsSync(dataTargetsCsvPath)) {
+      csvPath = dataTargetsCsvPath
+      console.log(`[SEED] source=${csvPath}`)
+    } else if (existsSync(srcTargetsCsvPath)) {
       csvPath = srcTargetsCsvPath
       console.log(`[SEED] source=${csvPath}`)
-    } else if (existsSync(dataTargetsCsvPath)) {
-      csvPath = dataTargetsCsvPath
+    } else if (existsSync(sampleCsvPath)) {
+      csvPath = sampleCsvPath
       console.log(`[SEED] source=${csvPath}`)
     } else {
       const errorMsg = `[SEED] ERROR: csv not found`
       console.error(errorMsg)
       console.error(`[SEED] Checked paths:`)
-      console.error(`  - ${srcTargetsCsvPath}`)
       console.error(`  - ${dataTargetsCsvPath}`)
+      console.error(`  - ${srcTargetsCsvPath}`)
+      console.error(`  - ${sampleCsvPath}`)
       throw new Error(errorMsg)
     }
 
