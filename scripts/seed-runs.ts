@@ -189,8 +189,12 @@ async function main() {
     const totalRuns = await prisma.run.count()
     const totalResults = await prisma.runResult.count()
 
+    const insertedCount = runCreatedCount + resultCreatedCount
+    const updatedCount = runUpdatedCount + resultUpdatedCount
+
+    console.log(`[SEED-RUNS] inserted=${insertedCount}, updated=${updatedCount}, skipped=${skippedCount}`)
     console.log(`[SEED-RUNS] runs created=${runCreatedCount}, updated=${runUpdatedCount}`)
-    console.log(`[SEED-RUNS] results created=${resultCreatedCount}, updated=${resultUpdatedCount}, skipped=${skippedCount}`)
+    console.log(`[SEED-RUNS] results created=${resultCreatedCount}, updated=${resultUpdatedCount}`)
     console.log(`[SEED-RUNS] total runs in DB=${totalRuns}, total results=${totalResults}`)
     console.log(`[SEED-RUNS] completed successfully`)
   } catch (error) {
