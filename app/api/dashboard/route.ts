@@ -454,9 +454,9 @@ export async function GET(request: NextRequest) {
       diffsByDate, // 날짜별 변경사항
       tableData,
       runDate,
-      baselineRunDate: baselineRun?.runDate || null,
+      baselineRunDate: baselineRun?.runDate ? normalizeRunDate(baselineRun.runDate) : null,
       allRuns: allRuns.map((r) => ({
-        runDate: r.runDate,
+        runDate: normalizeRunDate(r.runDate), // 날짜 정규화하여 반환
         results: r.results,
       })),
     })
