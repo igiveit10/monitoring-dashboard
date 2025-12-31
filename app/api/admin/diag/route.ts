@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     // Targets 개수
     const targetsCount = await prisma.target.count()
 
-    // Runs 날짜별 개수 요약
+    // Runs 전체 조회 (날짜별 정렬)
     const runs = await prisma.run.findMany({
       include: {
         results: true,
@@ -39,11 +39,33 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // 날짜별 runs 개수 집계
+    const runsByDate: Record<string, number> = {}
+    runs.forEach((run) => {
+      const date = run.runDate
+      runsByDate[date] = (runsByDate[date] || 0) + 1
+    })
+
+    // 날짜별 상세 정보
     const runsSummary = runs.map((run) => ({
       runDate: run.runDate,
       runId: run.id,
       resultsCount: run.results.length,
       createdAt: run.createdAt,
+    }))
+
+    // 최신 runs 5개 샘플 (상세 정보 포함)
+    const latestRuns = runs.slice(0, 5).map((run) => ({
+      runDate: run.runDate,
+      runId: run.id,
+      resultsCount: run.results.length,
+      createdAt: run.createdAt,
+      sampleResults: run.results.slice(0, 3).map((result) => ({
+        targetId: result.targetId,
+        foundAcademicNaver: result.foundAcademicNaver,
+        isPdf: result.isPdf,
+        checkedAt: result.checkedAt,
+      })),
     }))
 
     // 전체 RunResult 개수
@@ -52,16 +74,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        targets: {
-          count: targetsCount,
-        },
-        runs: {
-          count: runs.length,
-          summary: runsSummary,
-        },
-        results: {
-          count: totalResultsCount,
-        },
+        targets_count: targetsCount,
+        runs_count: runs.length,
+        runs_by_date: runsByDate,
+        latest_runs: latestRuns,
+        total_results_count: totalResultsCount,
         timestamp: new Date().toISOString(),
       },
     })
