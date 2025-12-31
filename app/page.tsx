@@ -1120,11 +1120,13 @@ export default function Dashboard() {
                   onClick={async () => {
                     setLoading(true)
                     try {
-                      const promises = Object.entries(monitoringData).map(([targetId, data]) => {
-                        const ps: Promise<any>[] = []
-
-                        ps.push(
-                          fetch('/api/monitoring', {
+                      console.log(`[Frontend] Saving monitoring data for date: ${monitoringModalDate}, entries: ${Object.keys(monitoringData).length}`)
+                      
+                      const promises = Object.entries(monitoringData).map(async ([targetId, data]) => {
+                        try {
+                          console.log(`[Frontend] Saving target ${targetId}: 통검=${data.통검노출}, PDF=${data.pdf노출}, 비고=${data.비고}`)
+                          
+                          const response = await fetch('/api/monitoring', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -1135,12 +1137,31 @@ export default function Dashboard() {
                               comment: data.비고 || null, // 비고도 함께 전달
                             }),
                           })
-                        )
 
-                        return Promise.all(ps)
+                          if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}))
+                            console.error(`[Frontend] API error for ${targetId}:`, response.status, errorData)
+                            throw new Error(`Failed to save ${targetId}: ${errorData.message || response.statusText}`)
+                          }
+
+                          const result = await response.json()
+                          console.log(`[Frontend] Successfully saved ${targetId}:`, result)
+                          return result
+                        } catch (error) {
+                          console.error(`[Frontend] Error saving target ${targetId}:`, error)
+                          throw error
+                        }
                       })
 
-                      await Promise.all(promises)
+                      const results = await Promise.allSettled(promises)
+                      const failed = results.filter(r => r.status === 'rejected')
+                      
+                      if (failed.length > 0) {
+                        console.error(`[Frontend] ${failed.length} targets failed to save:`, failed)
+                        alert(`저장 중 오류가 발생했습니다. ${failed.length}개 항목 저장 실패. 콘솔을 확인하세요.`)
+                      } else {
+                        console.log(`[Frontend] All ${results.length} targets saved successfully`)
+                      }
 
                       if (typeof window !== 'undefined') {
                         localStorage.removeItem(`monitoring_${monitoringModalDate}`)
@@ -1150,8 +1171,8 @@ export default function Dashboard() {
                       setSelectedRunDate(monitoringModalDate)
                       await loadDashboardData()
                     } catch (error) {
-                      console.error('Error saving monitoring data:', error)
-                      alert('저장 중 오류가 발생했습니다.')
+                      console.error('[Frontend] Error saving monitoring data:', error)
+                      alert(`저장 중 오류가 발생했습니다: ${error instanceof Error ? error.message : String(error)}`)
                     } finally {
                       setLoading(false)
                     }
