@@ -40,49 +40,47 @@ async function main() {
   const prisma = getPrisma()
 
   try {
-    // 1. 작업 전 target count 확인
+    // 1. FORCE_SEED 옵션 확인
+    const forceSeed = process.env.FORCE_SEED === 'true'
+    console.log(`[SEED] FORCE_SEED=${forceSeed}`)
+
+    // 2. 작업 전 target count 확인
     const beforeCount = await prisma.target.count()
     console.log(`[SEED] target count=${beforeCount}`)
 
-    // 2. 이미 데이터가 있는지 확인
-    if (beforeCount > 0) {
+    // 3. FORCE_SEED가 아니고 이미 데이터가 있으면 스킵
+    if (!forceSeed && beforeCount > 0) {
       console.log(`[SEED] already seeded, skip`)
       process.exit(0)
     }
 
-    console.log('[SEED] database empty, proceeding with seed...')
+    // 4. FORCE_SEED가 true이면 기존 데이터 삭제
+    if (forceSeed && beforeCount > 0) {
+      console.log(`[SEED] FORCE_SEED=true, deleting ${beforeCount} existing targets...`)
+      await prisma.target.deleteMany({})
+      console.log(`[SEED] deleted all existing targets`)
+    }
 
-    // 3. 파일 존재 확인 (절대경로로 확인)
-    const targetsCsvPath = join(process.cwd(), 'data', 'targets.csv')
-    const dataSampleCsvPath = join(process.cwd(), 'data', 'sample.csv')
-    const rootSampleCsvPath = join(process.cwd(), 'sample.csv')
+    console.log('[SEED] proceeding with seed...')
+
+    // 5. 파일 존재 확인 (src/data/targets.csv 우선, 없으면 data/targets.csv)
+    const srcTargetsCsvPath = join(process.cwd(), 'src', 'data', 'targets.csv')
+    const dataTargetsCsvPath = join(process.cwd(), 'data', 'targets.csv')
 
     let csvPath: string | null = null
 
-    if (existsSync(targetsCsvPath)) {
-      csvPath = targetsCsvPath
-      console.log(`[SEED] source=${targetsCsvPath}`)
-    } else if (existsSync(dataSampleCsvPath)) {
-      csvPath = dataSampleCsvPath
-      console.log(`[SEED] source=${dataSampleCsvPath}`)
-    } else if (existsSync(rootSampleCsvPath)) {
-      console.log(`[SEED] copying sample.csv to data/targets.csv`)
-      copyFileSync(rootSampleCsvPath, targetsCsvPath)
-      csvPath = targetsCsvPath
-      console.log(`[SEED] source=${targetsCsvPath}`)
+    if (existsSync(srcTargetsCsvPath)) {
+      csvPath = srcTargetsCsvPath
+      console.log(`[SEED] source=${csvPath}`)
+    } else if (existsSync(dataTargetsCsvPath)) {
+      csvPath = dataTargetsCsvPath
+      console.log(`[SEED] source=${csvPath}`)
     } else {
       const errorMsg = `[SEED] ERROR: csv not found`
       console.error(errorMsg)
       console.error(`[SEED] Checked paths:`)
-      console.error(`  - ${targetsCsvPath}`)
-      console.error(`  - ${dataSampleCsvPath}`)
-      console.error(`  - ${rootSampleCsvPath}`)
-      throw new Error(errorMsg)
-    }
-
-    if (!csvPath || !existsSync(csvPath)) {
-      const errorMsg = `[SEED] ERROR: csv not found`
-      console.error(errorMsg)
+      console.error(`  - ${srcTargetsCsvPath}`)
+      console.error(`  - ${dataTargetsCsvPath}`)
       throw new Error(errorMsg)
     }
 
