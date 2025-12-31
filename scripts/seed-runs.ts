@@ -1,0 +1,209 @@
+import { PrismaClient } from '@prisma/client'
+import { parse } from 'csv-parse/sync'
+import { readFileSync, existsSync } from 'fs'
+import { join } from 'path'
+
+// DATABASE_URL 환경변수에서 Prisma 클라이언트 생성
+const getPrisma = () => {
+  const rawDatabaseUrl = process.env.DATABASE_URL ?? ""
+  const databaseUrl = rawDatabaseUrl.replace(/\s/g, "")
+  
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL 환경 변수가 설정되지 않았습니다')
+  }
+  
+  let parsed: URL
+  try {
+    parsed = new URL(databaseUrl)
+  } catch {
+    throw new Error(`DATABASE_URL이 올바른 형식이 아닙니다: ${databaseUrl}`)
+  }
+  
+  if (parsed.protocol !== "postgresql:" && parsed.protocol !== "postgres:") {
+    throw new Error(`DATABASE_URL 프로토콜이 postgres가 아닙니다: ${parsed.protocol}`)
+  }
+  
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: databaseUrl,
+      },
+    },
+  })
+}
+
+async function main() {
+  console.log('[SEED-RUNS] start')
+  console.log(`[SEED-RUNS] cwd=${process.cwd()}`)
+  console.log(`[SEED-RUNS] DATABASE_URL present=${!!process.env.DATABASE_URL}`)
+
+  const prisma = getPrisma()
+
+  try {
+    // CSV 파일 경로 확인 (우선순위: data/runs.csv → src/data/runs.csv)
+    const dataRunsCsvPath = join(process.cwd(), 'data', 'runs.csv')
+    const srcRunsCsvPath = join(process.cwd(), 'src', 'data', 'runs.csv')
+
+    let csvPath: string | null = null
+
+    if (existsSync(dataRunsCsvPath)) {
+      csvPath = dataRunsCsvPath
+      console.log(`[SEED-RUNS] source=${csvPath}`)
+    } else if (existsSync(srcRunsCsvPath)) {
+      csvPath = srcRunsCsvPath
+      console.log(`[SEED-RUNS] source=${csvPath}`)
+    } else {
+      console.log(`[SEED-RUNS] CSV not found, skipping runs seed`)
+      console.log(`[SEED-RUNS] Checked paths:`)
+      console.log(`  - ${dataRunsCsvPath}`)
+      console.log(`  - ${srcRunsCsvPath}`)
+      process.exit(0) // CSV가 없으면 스킵 (에러 아님)
+    }
+
+    // CSV 파일 읽기
+    let content = readFileSync(csvPath, 'utf-8')
+    
+    // BOM 제거
+    if (content.charCodeAt(0) === 0xFEFF) {
+      content = content.slice(1)
+    }
+
+    // CSV 파싱
+    const records = parse(content, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    })
+
+    console.log(`[SEED-RUNS] rows=${records.length}`)
+
+    if (records.length === 0) {
+      console.log(`[SEED-RUNS] CSV empty, skipping`)
+      process.exit(0)
+    }
+
+    // runDate별로 그룹화
+    const runsByDate = new Map<string, any[]>()
+    for (const record of records) {
+      const runDate = record.run_date?.trim()
+      if (!runDate) continue
+
+      if (!runsByDate.has(runDate)) {
+        runsByDate.set(runDate, [])
+      }
+      runsByDate.get(runDate)!.push(record)
+    }
+
+    console.log(`[SEED-RUNS] run dates found: ${Array.from(runsByDate.keys()).join(', ')}`)
+
+    let runCreatedCount = 0
+    let runUpdatedCount = 0
+    let resultCreatedCount = 0
+    let resultUpdatedCount = 0
+    let skippedCount = 0
+
+    // 각 runDate별로 처리
+    for (const [runDate, records] of runsByDate.entries()) {
+      // Run 생성 또는 조회
+      let run = await prisma.run.findUnique({
+        where: { runDate },
+      })
+
+      if (!run) {
+        run = await prisma.run.create({
+          data: {
+            runDate,
+          },
+        })
+        runCreatedCount++
+        console.log(`[SEED-RUNS] Created run for ${runDate}`)
+      } else {
+        runUpdatedCount++
+        console.log(`[SEED-RUNS] Run ${runDate} already exists, updating results`)
+      }
+
+      // 각 레코드를 RunResult로 처리
+      for (const record of records) {
+        // 필드 trim 처리
+        const targetId = record.id?.trim()
+        const foundAcademic = record.found_academic?.trim().toUpperCase()
+        const foundPdf = record.found_pdf?.trim().toUpperCase()
+
+        if (!targetId) {
+          skippedCount++
+          continue
+        }
+
+        // Target 존재 확인
+        const target = await prisma.target.findUnique({
+          where: { id: targetId },
+        })
+
+        if (!target) {
+          console.log(`[SEED-RUNS] Target ${targetId} not found, skipping`)
+          skippedCount++
+          continue
+        }
+
+        // RunResult upsert
+        const foundAcademicNaver = foundAcademic === 'Y'
+        const isPdf = foundPdf === 'Y'
+
+        try {
+          const existingResult = await prisma.runResult.findUnique({
+            where: {
+              runId_targetId: {
+                runId: run.id,
+                targetId: target.id,
+              },
+            },
+          })
+
+          if (existingResult) {
+            await prisma.runResult.update({
+              where: { id: existingResult.id },
+              data: {
+                foundAcademicNaver,
+                isPdf,
+              },
+            })
+            resultUpdatedCount++
+          } else {
+            await prisma.runResult.create({
+              data: {
+                runId: run.id,
+                targetId: target.id,
+                foundAcademicNaver,
+                isPdf,
+              },
+            })
+            resultCreatedCount++
+          }
+        } catch (error: any) {
+          console.error(`[SEED-RUNS] Error processing result for ${targetId} on ${runDate}:`, error.message)
+          skippedCount++
+        }
+      }
+    }
+
+    const totalRuns = await prisma.run.count()
+    const totalResults = await prisma.runResult.count()
+
+    console.log(`[SEED-RUNS] runs created=${runCreatedCount}, updated=${runUpdatedCount}`)
+    console.log(`[SEED-RUNS] results created=${resultCreatedCount}, updated=${resultUpdatedCount}, skipped=${skippedCount}`)
+    console.log(`[SEED-RUNS] total runs in DB=${totalRuns}, total results=${totalResults}`)
+    console.log(`[SEED-RUNS] completed successfully`)
+  } catch (error) {
+    console.error('[SEED-RUNS] Seed error:', error)
+    throw error
+  } finally {
+    await prisma.$disconnect()
+  }
+}
+
+main()
+  .catch((e) => {
+    console.error('[SEED-RUNS] Fatal error:', e)
+    process.exit(1)
+  })
+

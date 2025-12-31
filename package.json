@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npx tsx scripts/ensure-data-dirs.ts && npx next build",
-    "start": "npx tsx scripts/ensure-data-dirs.ts && npx tsx scripts/seed-targets.ts && npx next start -p $PORT",
+    "start": "npx tsx scripts/ensure-data-dirs.ts && npx tsx scripts/seed-targets.ts && npx tsx scripts/seed-runs.ts && npx next start -p $PORT",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
