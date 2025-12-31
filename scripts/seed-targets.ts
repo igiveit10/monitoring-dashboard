@@ -108,53 +108,47 @@ async function main() {
     }
 
     let createdCount = 0
+    let updatedCount = 0
     let skippedCount = 0
 
-    // 각 레코드를 upsert (중복 방지)
+    // 각 레코드를 처리
     for (const record of records) {
-      let keyword: string | undefined
-      let url: string | undefined
-      let currentStatus: string | null = null
-      let myComment: string | null = null
-      let csvId: string | undefined = undefined
-      let csvPdfExposure: boolean | undefined = undefined
+      // 모든 필드 trim 처리
+      const trimRecord: Record<string, string> = {}
+      for (const key in record) {
+        trimRecord[key] = String(record[key] || '').trim()
+      }
 
       // CSV에서 id 추출
-      csvId = record.id || record._id || undefined
+      const csvId = trimRecord.id || trimRecord._id || undefined
       
       // keyword/title 추출
-      keyword = record.keyword || record.title || undefined
-
-      if (record.keyword && record.url) {
-        // 표준 형식: keyword,url,currentStatus,myComment
-        url = record.url
-        currentStatus = record.currentStatus || null
-        myComment = record.myComment || null
-        csvPdfExposure = record.csvPdfExposure === 'Y' || record.csvPdfExposure === true
-      } else if (record.title && record.통검url3) {
-        // QA 형식: _id,title,통검url3,통검노출,PDF 노출,비고
-        url = record.통검url3
-        if (record.통검노출 === 'Y') {
-          currentStatus = '노출'
-        } else if (record.통검노출 === 'N') {
-          currentStatus = '미노출'
-        }
-        csvPdfExposure = record['PDF 노출'] === 'Y'
-        myComment = record.비고 || null
-      } else if (keyword && record.url) {
-        // keyword/title과 url이 있는 경우
-        url = record.url
-        currentStatus = record.currentStatus || null
-        myComment = record.myComment || null
-        csvPdfExposure = record.csvPdfExposure === 'Y' || record.csvPdfExposure === true
-      }
+      const keyword = trimRecord.keyword || trimRecord.title || undefined
+      const url = trimRecord.url || undefined
 
       if (!keyword || !url) {
         skippedCount++
         continue
       }
 
-      // 중복 확인: URL로 먼저 확인
+      // answer_search_exposed (통검 노출) 처리: Y/N -> "노출"/"미노출"
+      let currentStatus: string | null = null
+      const answerSearchExposed = trimRecord.answer_search_exposed?.toUpperCase()
+      if (answerSearchExposed === 'Y') {
+        currentStatus = '노출'
+      } else if (answerSearchExposed === 'N') {
+        currentStatus = '미노출'
+      }
+      // answer_search_exposed가 없으면 null 유지
+
+      // answer_pdf_exposed (PDF 노출) 처리: Y/N -> boolean
+      const answerPdfExposed = trimRecord.answer_pdf_exposed?.toUpperCase()
+      const csvPdfExposure = answerPdfExposed === 'Y'
+
+      // note -> myComment
+      const myComment = trimRecord.note || null
+
+      // 기존 레코드 확인: URL로 먼저 확인
       let existing = await prisma.target.findUnique({
         where: { url },
       })
@@ -170,41 +164,81 @@ async function main() {
         }
       }
 
-      if (existing) {
-        // 이미 존재하는 경우 스킵 (중복 insert 방지)
-        skippedCount++
-        continue
-      }
-
-      // 새 레코드 생성
-      try {
-        await prisma.target.create({
-          data: {
-            ...(csvId ? { id: csvId } : {}),
-            keyword,
-            url,
-            currentStatus,
-            csvPdfExposure: csvPdfExposure ?? false,
-            myComment,
-          },
-        })
-        createdCount++
-      } catch (error: any) {
-        if (error.code === 'P2002') {
-          // Unique constraint violation (중복)
+      // FORCE_SEED 모드에서는 이미 삭제했으므로 create만 사용
+      // 일반 모드에서는 기존 레코드가 있으면 upsert, 없으면 create
+      if (forceSeed) {
+        // FORCE_SEED 모드: create만 사용 (이미 삭제했으므로)
+        try {
+          await prisma.target.create({
+            data: {
+              ...(csvId ? { id: csvId } : {}),
+              keyword,
+              url,
+              currentStatus,
+              csvPdfExposure,
+              myComment,
+            },
+          })
+          createdCount++
+        } catch (error: any) {
+          if (error.code === 'P2002') {
+            // Unique constraint violation (중복)
+            skippedCount++
+          } else {
+            console.error(`Error creating target ${keyword}:`, error.message)
+            skippedCount++
+          }
+        }
+      } else if (existing) {
+        // 일반 모드에서 기존 레코드가 있으면 upsert로 업데이트
+        try {
+          await prisma.target.update({
+            where: { id: existing.id },
+            data: {
+              keyword,
+              url,
+              currentStatus,
+              csvPdfExposure,
+              myComment,
+            },
+          })
+          updatedCount++
+        } catch (error: any) {
+          console.error(`Error updating target ${keyword}:`, error.message)
           skippedCount++
-        } else {
-          console.error(`Error creating target ${keyword}:`, error.message)
-          skippedCount++
+        }
+      } else {
+        // 일반 모드에서 새 레코드 생성
+        try {
+          await prisma.target.create({
+            data: {
+              ...(csvId ? { id: csvId } : {}),
+              keyword,
+              url,
+              currentStatus,
+              csvPdfExposure,
+              myComment,
+            },
+          })
+          createdCount++
+        } catch (error: any) {
+          if (error.code === 'P2002') {
+            // Unique constraint violation (중복)
+            skippedCount++
+          } else {
+            console.error(`Error creating target ${keyword}:`, error.message)
+            skippedCount++
+          }
         }
       }
     }
 
-    // 4. 작업 후 target count 확인
+    // 작업 후 target count 확인
     const afterCount = await prisma.target.count()
     
-    console.log(`[SEED] inserted=${createdCount}, skipped=${skippedCount}`)
-    console.log(`[SEED] target count after=${afterCount}`)
+    console.log(`[SEED] rows=${records.length}`)
+    console.log(`[SEED] inserted=${createdCount}, updated=${updatedCount}, skipped=${skippedCount}`)
+    console.log(`[SEED] target count before=${beforeCount}, after=${afterCount}`)
     
     // FORCE_SEED 모드에서는 count 증가 검증 스킵
     if (!forceSeed) {
