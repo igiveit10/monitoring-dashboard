@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { compareResults } from '@/lib/diff'
-import { sortTargetsByAnswerSet } from '@/lib/utils'
+import { sortTargetsByAnswerSet, sortTableDataByAnswerSet } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -328,7 +328,7 @@ export async function GET(request: NextRequest) {
       results.map((r) => [r.targetId, r])
     )
 
-    const tableData = allTargets.map((target) => {
+    const tableDataRaw = allTargets.map((target) => {
       const result = resultMap.get(target.id)
       
       // CSV에서 가져온 값 파싱
@@ -373,6 +373,9 @@ export async function GET(request: NextRequest) {
         }
       }
     })
+    
+    // 정답셋 기준으로 tableData 정렬: YY > YN > NY > NN
+    const tableData = sortTableDataByAnswerSet(tableDataRaw)
 
     return NextResponse.json({
       kpi: {

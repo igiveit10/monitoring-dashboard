@@ -140,7 +140,9 @@ export default function Dashboard() {
     monitoring비고: 200,
   })
   const [monitoringResizingColumn, setMonitoringResizingColumn] = useState<string | null>(null)
-  const [sortBy, setSortBy] = useState<string>('checkedAt')
+  // 기본 정렬: 정답셋 기준 (YY > YN > NY > NN)
+  // 사용자가 다른 컬럼을 클릭하면 그 컬럼으로 정렬됨
+  const [sortBy, setSortBy] = useState<string>('answerSet')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>({
