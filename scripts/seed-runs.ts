@@ -85,11 +85,13 @@ async function main() {
       content = content.slice(1)
     }
 
-    // CSV 파싱
+    // CSV 파싱 (comment 필드의 쉼표 처리를 위해 relax_column_count 추가)
     const records = parse(content, {
       columns: true,
       skip_empty_lines: true,
       trim: true,
+      relax_column_count: true, // 컬럼 수가 다른 행도 허용 (comment 필드의 쉼표 처리)
+      relax_quotes: true, // 따옴표 처리 완화
     })
 
     console.log(`[SEED-RUNS] rows=${records.length}`)
