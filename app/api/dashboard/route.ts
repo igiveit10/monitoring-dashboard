@@ -405,7 +405,6 @@ export async function GET(request: NextRequest) {
           csvPdf노출,
           foundAcademicNaver: result.foundAcademicNaver,
           isPdf: result.isPdf,
-          myComment: result.myComment, // 모니터링 결과 코멘트 (날짜별 셀에 표시)
           httpStatus: result.httpStatus,
           finalUrl: result.finalUrl,
           checkedAt: result.checkedAt,
@@ -423,7 +422,6 @@ export async function GET(request: NextRequest) {
           csvPdf노출,
           foundAcademicNaver: false,
           isPdf: false,
-          myComment: null, // 모니터링 결과 코멘트
           httpStatus: null,
           finalUrl: null,
           checkedAt: null,
