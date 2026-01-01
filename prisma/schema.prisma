@@ -11,15 +11,15 @@ datasource db {
 }
 
 model Target {
-  id            String   @id @default(cuid())
-  keyword       String
-  url           String   @unique
-  currentStatus String?  // 정답셋 통검노출: "노출" 또는 "미노출"
-  csvPdfExposure Boolean @default(false) // 정답셋 PDF 노출 (비고와 독립적)
-  myComment     String?  // 참고용 비고 텍스트 (PDF 노출과 무관)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  runResults    RunResult[]
+  id             String      @id @default(cuid())
+  keyword        String
+  url            String      @unique
+  currentStatus  String? // 정답셋 통검노출: "노출" 또는 "미노출"
+  csvPdfExposure Boolean     @default(false) // 정답셋 PDF 노출 (비고와 독립적)
+  myComment      String? // 참고용 비고 텍스트 (PDF 노출과 무관)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  runResults     RunResult[]
 
   @@index([url])
 }
@@ -37,6 +37,7 @@ model RunResult {
   targetId           String
   foundAcademicNaver Boolean  @default(false)
   isPdf              Boolean  @default(false)
+  myComment          String? // 모니터링 결과 비고/코멘트
   httpStatus         Int?
   finalUrl           String?
   checkedAt          DateTime @default(now())
@@ -58,4 +59,3 @@ model UploadHistory {
   recordCount Int
   uploadedAt  DateTime @default(now())
 }
-

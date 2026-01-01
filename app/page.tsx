@@ -1009,13 +1009,14 @@ export default function Dashboard() {
                             </td>
 
                             <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title={row.myComment || ''}>
-                              {row.myComment || '-'}
+                              {row.myComment && row.myComment.trim().length > 0 ? row.myComment : '-'}
                             </td>
 
                             {(dashboardData?.allRuns ?? []).map((run) => {
                               const result = runResultsMap.get(run.runDate)
                               const 모니터링통검노출 = result?.foundAcademicNaver ?? false
                               const 모니터링Pdf노출 = result?.isPdf ?? false
+                              const comment = result?.myComment || null
 
                               const 통검일치 =
                                 (row.csv통검노출 === 'Y' && 모니터링통검노출) ||
@@ -1038,6 +1039,11 @@ export default function Dashboard() {
                                         <span>/</span>
                                         <span className="font-bold">{모니터링Pdf노출 ? 'Y' : 'N'}</span>
                                       </div>
+                                      {comment && (
+                                        <div className="text-xs text-gray-500 mt-0.5 truncate" title={comment}>
+                                          {comment}
+                                        </div>
+                                      )}
                                     </div>
                                   ) : (
                                     <span className="text-gray-400 text-xs">-</span>

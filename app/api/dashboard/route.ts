@@ -93,7 +93,21 @@ export async function GET(request: NextRequest) {
     const allRuns = await prisma.run.findMany({
       orderBy: { runDate: 'asc' },
       include: {
-        results: true,
+        results: {
+          select: {
+            id: true,
+            runId: true,
+            targetId: true,
+            foundAcademicNaver: true,
+            isPdf: true,
+            myComment: true, // myComment 필드 명시적으로 포함
+            httpStatus: true,
+            finalUrl: true,
+            checkedAt: true,
+            errorMessage: true,
+            rawEvidencePath: true,
+          },
+        },
       },
     })
     
@@ -376,16 +390,22 @@ export async function GET(request: NextRequest) {
       
       if (result) {
         // Run 결과가 있는 경우
+        // 비고 우선순위: RunResult.myComment > Target.myComment
+        const displayComment = result.myComment && result.myComment.trim().length > 0 
+          ? result.myComment 
+          : (target.myComment && target.myComment.trim().length > 0 ? target.myComment : null)
+        
         return {
           id: target.id,
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          myComment: target.myComment,
+          myComment: displayComment, // 비고: RunResult.myComment 우선, 없으면 Target.myComment
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: result.foundAcademicNaver,
           isPdf: result.isPdf,
+          comment: result.myComment, // 모니터링 결과 코멘트 (날짜별 셀에 표시)
           httpStatus: result.httpStatus,
           finalUrl: result.finalUrl,
           checkedAt: result.checkedAt,
@@ -398,11 +418,12 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          myComment: target.myComment,
+          myComment: target.myComment && target.myComment.trim().length > 0 ? target.myComment : null, // null로 반환하여 프론트에서 '-' 표시
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: false,
           isPdf: false,
+          comment: null, // 모니터링 결과 코멘트
           httpStatus: null,
           finalUrl: null,
           checkedAt: null,
@@ -457,7 +478,10 @@ export async function GET(request: NextRequest) {
       baselineRunDate: baselineRun?.runDate ? normalizeRunDate(baselineRun.runDate) : null,
       allRuns: allRuns.map((r) => ({
         runDate: normalizeRunDate(r.runDate), // 날짜 정규화하여 반환
-        results: r.results,
+        results: r.results.map((res) => ({
+          ...res,
+          comment: res.myComment || null, // comment 필드 명시적으로 포함 (myComment를 comment로 매핑)
+        })),
       })),
     })
   } catch (error) {

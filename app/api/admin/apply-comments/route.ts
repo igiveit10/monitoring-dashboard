@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
           targetId: targetId,
         },
         data: {
-          comment: trimmedComment,
+          myComment: trimmedComment,
         },
       })
 
