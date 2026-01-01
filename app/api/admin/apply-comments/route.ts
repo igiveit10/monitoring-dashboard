@@ -33,7 +33,7 @@ const getPrisma = () => {
   })
 }
 
-const COMMENT_MAPPING: Record<string, string> = {
+const MY_COMMENT_MAPPING: Record<string, string> = {
   'd234086916': '제안검색 수정',
   'd1003260531': '다른논문, Seckel 증후군 환자의 전신마취경험 - 증례보고 -',
   'd884485527': '다른논문, HIRA Research의 도약 - 건강보험심사평가원',
@@ -81,10 +81,10 @@ export async function POST(request: NextRequest) {
     const updateResults: Array<{ targetId: string; updated: number }> = []
 
     // 각 targetId별로 updateMany 실행
-    for (const [targetId, comment] of Object.entries(COMMENT_MAPPING)) {
-      const trimmedComment = comment.trim()
+    for (const [targetId, myCommentValue] of Object.entries(MY_COMMENT_MAPPING)) {
+      const trimmedMyComment = myCommentValue.trim()
       
-      if (trimmedComment.length === 0) {
+      if (trimmedMyComment.length === 0) {
         continue
       }
 
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
           targetId: targetId,
         },
         data: {
-          myComment: trimmedComment,
+          myComment: trimmedMyComment,
         },
       })
 
@@ -114,10 +114,10 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     await prisma.$disconnect()
-    console.error('[APPLY-COMMENTS] Error:', error)
+    console.error('[APPLY-MY-COMMENTS] Error:', error)
     return NextResponse.json(
       { 
-        error: 'Failed to apply comments',
+        error: 'Failed to apply myComments',
         message: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
