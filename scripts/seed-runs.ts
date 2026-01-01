@@ -41,30 +41,21 @@ async function main() {
   const prisma = getPrisma()
 
   try {
-    // FORCE_SEED 옵션 확인
-    const forceSeed = process.env.FORCE_SEED === 'true'
-    console.log(`[SEED-RUNS] FORCE_SEED=${forceSeed}`)
+    // FORCE_SEED_RUNS 옵션 확인 (기본값: false)
+    const forceSeedRuns = process.env.FORCE_SEED_RUNS === 'true'
+    console.log(`[SEED-RUNS] FORCE_SEED_RUNS=${forceSeedRuns}`)
+
+    // FORCE_SEED_RUNS가 false이면 스킵
+    if (!forceSeedRuns) {
+      console.log(`[SEED-RUNS] FORCE_SEED_RUNS=false, skipping seed. Set FORCE_SEED_RUNS=true to run seed.`)
+      process.exit(0)
+    }
 
     // 기존 runs 개수 확인
     const existingRunsCount = await prisma.run.count()
     console.log(`[SEED-RUNS] Existing runs count=${existingRunsCount}`)
 
-    // 멱등성 보장: FORCE_SEED가 false이고 runs가 이미 있으면 절대 건드리지 않음
-    // 사용자가 추가한 모니터링 데이터를 보호하는 것이 최우선
-    if (!forceSeed && existingRunsCount > 0) {
-      console.log(`[SEED-RUNS] Runs already exist (count=${existingRunsCount}), skipping seed completely.`)
-      console.log(`[SEED-RUNS] This prevents overwriting user-added monitoring data on server restart.`)
-      console.log(`[SEED-RUNS] To force re-seed, set FORCE_SEED=true (WARNING: will delete all existing runs)`)
-      process.exit(0)
-    }
-
-    // FORCE_SEED=true일 때만 기존 runs 삭제 (매우 위험한 작업)
-    if (forceSeed && existingRunsCount > 0) {
-      console.log(`[SEED-RUNS] WARNING: FORCE_SEED=true, deleting ${existingRunsCount} existing runs...`)
-      await prisma.runResult.deleteMany({}) // 먼저 결과 삭제
-      await prisma.run.deleteMany({}) // 그 다음 run 삭제
-      console.log(`[SEED-RUNS] Deleted all existing runs and results`)
-    }
+    // 주의: delete 하지 않고 upsert만 수행 (데이터 보호)
 
     // CSV 파일 경로 확인 (우선순위: data/runs.csv → src/data/runs.csv)
     const dataRunsCsvPath = join(process.cwd(), 'data', 'runs.csv')
@@ -136,7 +127,7 @@ async function main() {
         console.log(`[SEED-RUNS] RunDate normalized: ${runDate} -> ${normalizedRunDate}`)
       }
 
-      // Run 생성 또는 조회
+      // Run 생성 또는 조회 (upsert)
       let run = await prisma.run.findUnique({
         where: { runDate: normalizedRunDate },
       })
@@ -150,18 +141,14 @@ async function main() {
         runCreatedCount++
         console.log(`[SEED-RUNS] Created run for ${normalizedRunDate}`)
       } else {
-        // 멱등성 보장: 기존 Run이 있으면 절대 건드리지 않음
-        // FORCE_SEED=true일 때는 이미 위에서 모든 runs를 삭제했으므로 여기 도달하면 안 됨
-        // 하지만 방어적 코딩: 혹시 모를 경우를 대비해 스킵
-        console.log(`[SEED-RUNS] Run ${normalizedRunDate} already exists, skipping to preserve user data`)
-        console.log(`[SEED-RUNS] This should not happen if FORCE_SEED logic worked correctly`)
-        continue
+        runUpdatedCount++
+        console.log(`[SEED-RUNS] Run ${normalizedRunDate} already exists, will upsert results`)
       }
 
       // 각 레코드를 RunResult로 처리
       for (const record of records) {
-        // 필드 trim 처리
-        const targetId = record.id?.trim()
+        // 필드 trim 처리 (CSV 헤더: target_id,run_date,found_academic,found_pdf,comment)
+        const targetId = record.target_id?.trim() || record.id?.trim()
         const foundAcademic = record.found_academic?.trim().toUpperCase()
         const foundPdf = record.found_pdf?.trim().toUpperCase()
 
@@ -181,42 +168,33 @@ async function main() {
           continue
         }
 
-        // RunResult upsert
+        // RunResult upsert (target_id, run_date를 유니크 키로 사용)
         const foundAcademicNaver = foundAcademic === 'Y'
         const isPdf = foundPdf === 'Y'
 
         try {
-          const existingResult = await prisma.runResult.findUnique({
+          await prisma.runResult.upsert({
             where: {
               runId_targetId: {
                 runId: run.id,
                 targetId: target.id,
               },
             },
+            update: {
+              foundAcademicNaver,
+              isPdf,
+              checkedAt: new Date(),
+            },
+            create: {
+              runId: run.id,
+              targetId: target.id,
+              foundAcademicNaver,
+              isPdf,
+            },
           })
-
-          if (existingResult) {
-            await prisma.runResult.update({
-              where: { id: existingResult.id },
-              data: {
-                foundAcademicNaver,
-                isPdf,
-              },
-            })
-            resultUpdatedCount++
-          } else {
-            await prisma.runResult.create({
-              data: {
-                runId: run.id,
-                targetId: target.id,
-                foundAcademicNaver,
-                isPdf,
-              },
-            })
-            resultCreatedCount++
-          }
+          resultCreatedCount++ // upsert는 create/update 모두 카운트
         } catch (error: any) {
-          console.error(`[SEED-RUNS] Error processing result for ${targetId} on ${runDate}:`, error.message)
+          console.error(`[SEED-RUNS] Error upserting result for ${targetId} on ${runDate}:`, error.message)
           skippedCount++
         }
       }
