@@ -99,11 +99,33 @@ async function main() {
       process.exit(0)
     }
 
+    // 헤더 형식 감지 및 정규화
+    // 형식 A: id,run_date,found_academic,found_pdf,comment
+    // 형식 B: id,found_academic,found_pdf,run_date (comment 없음)
+    const firstRecord = records[0]
+    const hasRunDateColumn = 'run_date' in firstRecord
+    const hasCommentColumn = 'comment' in firstRecord
+    
+    console.log(`[SEED-RUNS] CSV format detected: run_date column=${hasRunDateColumn}, comment column=${hasCommentColumn}`)
+
     // runDate별로 그룹화
     const runsByDate = new Map<string, any[]>()
     for (const record of records) {
-      const runDate = record.run_date?.trim()
-      if (!runDate) continue
+      // run_date 컬럼이 있으면 그대로 사용, 없으면 run_date 필드에서 추출
+      let runDate: string | undefined
+      
+      if (hasRunDateColumn) {
+        // 형식 A: run_date 컬럼 사용
+        runDate = record.run_date?.trim()
+      } else {
+        // 형식 B: run_date 필드에서 추출 (또는 다른 필드명 확인)
+        runDate = record.run_date?.trim() || (record as any).date?.trim()
+      }
+      
+      if (!runDate) {
+        console.warn(`[SEED-RUNS] Skipping record without run_date: ${JSON.stringify(record)}`)
+        continue
+      }
 
       if (!runsByDate.has(runDate)) {
         runsByDate.set(runDate, [])
@@ -111,7 +133,8 @@ async function main() {
       runsByDate.get(runDate)!.push(record)
     }
 
-    console.log(`[SEED-RUNS] run dates found: ${Array.from(runsByDate.keys()).join(', ')}`)
+    const datesFound = Array.from(runsByDate.keys()).sort().join(', ')
+    console.log(`[SEED-RUNS] dates found: ${datesFound}`)
 
     let runCreatedCount = 0
     let runUpdatedCount = 0
@@ -147,10 +170,17 @@ async function main() {
 
       // 각 레코드를 RunResult로 처리
       for (const record of records) {
-        // 필드 trim 처리 (CSV 헤더: target_id,run_date,found_academic,found_pdf,comment)
+        // 필드 trim 처리 및 헤더 형식 자동 감지
+        // 형식 A: target_id,run_date,found_academic,found_pdf,comment
+        // 형식 B: id,found_academic,found_pdf,run_date (comment 없음)
         const targetId = record.target_id?.trim() || record.id?.trim()
-        const foundAcademic = record.found_academic?.trim().toUpperCase()
-        const foundPdf = record.found_pdf?.trim().toUpperCase()
+        
+        // Y/N/-/빈값 처리: trim 후 '-', '', null은 N으로 취급
+        const foundAcademicRaw = record.found_academic?.trim().toUpperCase() || ''
+        const foundPdfRaw = record.found_pdf?.trim().toUpperCase() || ''
+        
+        const foundAcademic = (foundAcademicRaw === 'Y') ? 'Y' : 'N'
+        const foundPdf = (foundPdfRaw === 'Y') ? 'Y' : 'N'
 
         if (!targetId) {
           skippedCount++
@@ -173,6 +203,15 @@ async function main() {
         const isPdf = foundPdf === 'Y'
 
         try {
+          const existingResult = await prisma.runResult.findUnique({
+            where: {
+              runId_targetId: {
+                runId: run.id,
+                targetId: target.id,
+              },
+            },
+          })
+
           await prisma.runResult.upsert({
             where: {
               runId_targetId: {
@@ -192,7 +231,12 @@ async function main() {
               isPdf,
             },
           })
-          resultCreatedCount++ // upsert는 create/update 모두 카운트
+          
+          if (existingResult) {
+            resultUpdatedCount++
+          } else {
+            resultCreatedCount++
+          }
         } catch (error: any) {
           console.error(`[SEED-RUNS] Error upserting result for ${targetId} on ${runDate}:`, error.message)
           skippedCount++
@@ -206,7 +250,7 @@ async function main() {
     const insertedCount = runCreatedCount + resultCreatedCount
     const updatedCount = runUpdatedCount + resultUpdatedCount
 
-    console.log(`[SEED-RUNS] inserted=${insertedCount}, updated=${updatedCount}, skipped=${skippedCount}`)
+    console.log(`[SEED-RUNS] rows=${records.length}, inserted=${insertedCount}, updated=${updatedCount}, skipped=${skippedCount}`)
     console.log(`[SEED-RUNS] runs created=${runCreatedCount}, updated=${runUpdatedCount}`)
     console.log(`[SEED-RUNS] results created=${resultCreatedCount}, updated=${resultUpdatedCount}`)
     console.log(`[SEED-RUNS] total runs in DB=${totalRuns}, total results=${totalResults}`)
