@@ -95,6 +95,16 @@ async function main() {
     })
 
     console.log(`[SEED-RUNS] rows=${records.length}`)
+    
+    // 디버깅: 각 날짜별 행 수 확인
+    const dateCounts: Record<string, number> = {}
+    for (const record of records) {
+      const date = record.run_date?.trim()
+      if (date) {
+        dateCounts[date] = (dateCounts[date] || 0) + 1
+      }
+    }
+    console.log(`[SEED-RUNS] Date distribution:`, JSON.stringify(dateCounts))
 
     if (records.length === 0) {
       console.log(`[SEED-RUNS] CSV empty, skipping`)
