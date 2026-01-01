@@ -96,7 +96,7 @@ async function main() {
             targetId: targetId,
           },
           data: {
-            comment: trimmedComment,
+            myComment: trimmedComment,
           },
         })
 

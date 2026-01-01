@@ -1,7 +1,7 @@
 /**
  * 코멘트 일괄 주입 스크립트
  * 
- * 목적: RunResult.comment 필드에 코멘트를 일괄 주입
+ * 목적: RunResult.myComment 필드에 코멘트를 일괄 주입
  * 
  * 사용법:
  *   로컬: npx tsx scripts/apply-comments.ts
@@ -136,7 +136,7 @@ async function main() {
             },
           },
           data: {
-            comment: trimmedComment,
+            myComment: trimmedComment,
           },
         })
 
@@ -157,20 +157,20 @@ async function main() {
     // 검증 SQL 출력
     console.log(`\n[APPLY-COMMENTS] === Verification SQL ===`)
     console.log(`-- Check comments for run_date=${normalizedRunDate}:`)
-    console.log(`SELECT rr.id, rr."targetId", t.keyword, rr.comment`)
+    console.log(`SELECT rr.id, rr."targetId", t.keyword, rr."myComment"`)
     console.log(`FROM "RunResult" rr`)
     console.log(`JOIN "Run" r ON rr."runId" = r.id`)
     console.log(`JOIN "Target" t ON rr."targetId" = t.id`)
     console.log(`WHERE r."runDate" = '${normalizedRunDate}'`)
-    console.log(`  AND rr.comment IS NOT NULL`)
-    console.log(`  AND rr.comment != ''`)
+    console.log(`  AND rr."myComment" IS NOT NULL`)
+    console.log(`  AND rr."myComment" != ''`)
     console.log(`ORDER BY t.keyword;`)
 
     // 실제 검증 쿼리 실행
     const verificationResults = await prisma.runResult.findMany({
       where: {
         runId: run.id,
-        comment: {
+        myComment: {
           not: null,
         },
       },
@@ -192,7 +192,7 @@ async function main() {
     console.log(`\n[APPLY-COMMENTS] === Verification Results ===`)
     console.log(`[APPLY-COMMENTS] Total RunResults with comments: ${verificationResults.length}`)
     verificationResults.forEach((result) => {
-      const commentPreview = result.comment ? result.comment.substring(0, 50) + (result.comment.length > 50 ? '...' : '') : '(null)'
+      const commentPreview = result.myComment ? result.myComment.substring(0, 50) + (result.myComment.length > 50 ? '...' : '') : '(null)'
       console.log(`[APPLY-COMMENTS]   - ${result.targetId}: "${commentPreview}"`)
     })
 

@@ -405,7 +405,7 @@ export async function GET(request: NextRequest) {
           csvPdf노출,
           foundAcademicNaver: result.foundAcademicNaver,
           isPdf: result.isPdf,
-          comment: result.myComment, // 모니터링 결과 코멘트 (날짜별 셀에 표시)
+          myComment: result.myComment, // 모니터링 결과 코멘트 (날짜별 셀에 표시)
           httpStatus: result.httpStatus,
           finalUrl: result.finalUrl,
           checkedAt: result.checkedAt,
@@ -423,7 +423,7 @@ export async function GET(request: NextRequest) {
           csvPdf노출,
           foundAcademicNaver: false,
           isPdf: false,
-          comment: null, // 모니터링 결과 코멘트
+          myComment: null, // 모니터링 결과 코멘트
           httpStatus: null,
           finalUrl: null,
           checkedAt: null,
@@ -480,7 +480,7 @@ export async function GET(request: NextRequest) {
         runDate: normalizeRunDate(r.runDate), // 날짜 정규화하여 반환
         results: r.results.map((res) => ({
           ...res,
-          comment: res.myComment || null, // comment 필드 명시적으로 포함 (myComment를 comment로 매핑)
+          myComment: res.myComment || null, // myComment 필드 명시적으로 포함
         })),
       })),
     })

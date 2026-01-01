@@ -1140,7 +1140,7 @@ export default function Dashboard() {
                               targetId,
                               foundAcademicNaver: data.통검노출 === 'Y',
                               isPdf: data.pdf노출 === 'Y',
-                              comment: data.비고 || null, // 비고도 함께 전달
+                              myComment: data.비고 || null, // 비고도 함께 전달
                             }),
                           })
 

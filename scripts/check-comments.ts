@@ -60,14 +60,14 @@ async function main() {
         select: {
           id: true,
           targetId: true,
-          comment: true,
+          myComment: true,
         },
       })
 
       const total = allResults.length
-      const nullCnt = allResults.filter(r => r.comment === null).length
-      const emptyCnt = allResults.filter(r => r.comment === '').length
-      const filledCnt = allResults.filter(r => r.comment !== null && r.comment !== '').length
+      const nullCnt = allResults.filter(r => r.myComment === null).length
+      const emptyCnt = allResults.filter(r => r.myComment === '').length
+      const filledCnt = allResults.filter(r => r.myComment !== null && r.myComment !== '').length
 
       console.log(`[CHECK-COMMENTS] Total: ${total}`)
       console.log(`[CHECK-COMMENTS] NULL: ${nullCnt}`)
@@ -101,7 +101,7 @@ async function main() {
 
         if (result) {
           console.log(`[CHECK-COMMENTS] targetId=${targetId}:`)
-          console.log(`[CHECK-COMMENTS]   - RunResult.comment: ${result.comment || '(null/empty)'}`)
+          console.log(`[CHECK-COMMENTS]   - RunResult.myComment: ${result.myComment || '(null/empty)'}`)
           console.log(`[CHECK-COMMENTS]   - Target.myComment: ${result.target.myComment || '(null/empty)'}`)
           console.log(`[CHECK-COMMENTS]   - Target.keyword: ${result.target.keyword}`)
         } else {
@@ -136,12 +136,12 @@ async function main() {
 
     // SQL 쿼리 출력 (참고용)
     console.log(`\n[CHECK-COMMENTS] === 참고: SQL 쿼리 ===`)
-    console.log(`-- 1) RunResult comment 현황`)
+    console.log(`-- 1) RunResult myComment 현황`)
     console.log(`SELECT`)
     console.log(`  COUNT(*) as total,`)
-    console.log(`  SUM(CASE WHEN comment IS NULL THEN 1 ELSE 0 END) as null_cnt,`)
-    console.log(`  SUM(CASE WHEN comment = '' THEN 1 ELSE 0 END) as empty_cnt,`)
-    console.log(`  SUM(CASE WHEN comment IS NOT NULL AND comment <> '' THEN 1 ELSE 0 END) as filled_cnt`)
+    console.log(`  SUM(CASE WHEN "myComment" IS NULL THEN 1 ELSE 0 END) as null_cnt,`)
+    console.log(`  SUM(CASE WHEN "myComment" = '' THEN 1 ELSE 0 END) as empty_cnt,`)
+    console.log(`  SUM(CASE WHEN "myComment" IS NOT NULL AND "myComment" <> '' THEN 1 ELSE 0 END) as filled_cnt`)
     console.log(`FROM "RunResult" rr`)
     console.log(`JOIN "Run" r ON rr."runId" = r.id`)
     console.log(`WHERE r."runDate" = '${normalizedRunDate}';`)
