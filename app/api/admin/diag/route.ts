@@ -14,7 +14,21 @@ export async function GET(request: NextRequest) {
     // Runs 전체 조회 (날짜별 정렬)
     const runs = await prisma.run.findMany({
       include: {
-        results: true,
+        results: {
+          select: {
+            id: true,
+            runId: true,
+            targetId: true,
+            foundAcademicNaver: true,
+            isPdf: true,
+            httpStatus: true,
+            finalUrl: true,
+            checkedAt: true,
+            errorMessage: true,
+            rawEvidencePath: true,
+            // myComment 필드는 DB에 없을 수 있으므로 제외
+          },
+        },
       },
       orderBy: {
         runDate: 'desc',
