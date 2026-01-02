@@ -249,9 +249,6 @@ export default function Dashboard() {
   const kpiCheckedCount = kpi?.checked?.count ?? 0
   const kpiCheckedTotal = kpi?.checked?.total ?? 0
 
-  // 디버깅: myComment가 있는 row 개수
-  const rowsWithMyComment = dashboardData?.tableData?.filter(row => row.myComment)?.length ?? 0
-
   // 필터링된 테이블 데이터
   const filteredTableData = (dashboardData?.tableData ?? []).filter((row) => {
     if (filter === 'all') return true
@@ -740,9 +737,6 @@ export default function Dashboard() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>모니터링 테이블</CardTitle>
-                  <div className="text-sm text-red-600 font-bold mb-2">
-                    DEBUG: rows with myComment: {rowsWithMyComment} / {dashboardData?.tableData?.length ?? 0}
-                  </div>
                   <div className="flex gap-2">
                     <Button
                       onClick={handleExcelDownload}
@@ -1263,9 +1257,6 @@ export default function Dashboard() {
                     <th className="border p-2 text-center" style={{ width: monitoringColumnWidths.csv비고 }}>
                       정답셋 비고
                     </th>
-                    <th className="border p-2 text-center bg-yellow-100" style={{ width: 200 }}>
-                      DEBUG_COMMENT
-                    </th>
                     <th className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
                       모니터링 통검
                     </th>
@@ -1381,11 +1372,7 @@ export default function Dashboard() {
                           style={{ width: monitoringColumnWidths.csv비고 }}
                           title={row.myComment ?? ''}
                         >
-                          {row.myComment ?? '-'}
-                        </td>
-
-                        <td className="border p-2 bg-yellow-50 text-left" style={{ width: 200 }}>
-                          {String(row.myComment ?? '(empty)')}
+                          {String(row.myComment ?? '-')}
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
