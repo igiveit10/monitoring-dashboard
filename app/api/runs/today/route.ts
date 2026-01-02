@@ -10,20 +10,13 @@ export async function POST() {
     const today = normalizeRunDate(getTodayDateString())
     console.log(`[Runs/Today API] Request received: runDate=${today}`)
 
-    // 오늘 Run이 이미 있는지 확인
-    let run = await prisma.run.findFirst({
+    // 오늘 Run 조회 또는 생성 (upsert로 race condition 방지)
+    const run = await prisma.run.upsert({
       where: { runDate: today },
+      update: {}, // 기존 run이 있으면 업데이트 없음 (runDate만 있으므로)
+      create: { runDate: today },
     })
-
-    if (!run) {
-      // 새 Run 생성
-      run = await prisma.run.create({
-        data: { runDate: today },
-      })
-      console.log(`[Runs/Today API] Run created: id=${run.id}, runDate=${run.runDate}`)
-    } else {
-      console.log(`[Runs/Today API] Run found: id=${run.id}, runDate=${run.runDate}`)
-    }
+    console.log(`[Runs/Today API] Run upserted: id=${run.id}, runDate=${run.runDate}`)
 
     // 모든 targets 가져오기
     const targetsRaw = await prisma.target.findMany({

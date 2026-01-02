@@ -24,19 +24,13 @@ export async function POST(request: NextRequest) {
     const runDate = normalizeRunDate(rawRunDate)
     console.log(`[Monitoring API] Request received: runDate=${rawRunDate} (normalized=${runDate}), targetId=${targetId}`)
 
-    // Run 조회 또는 생성
-    let run = await prisma.run.findFirst({
+    // Run 조회 또는 생성 (upsert로 race condition 방지)
+    const run = await prisma.run.upsert({
       where: { runDate },
+      update: {}, // 기존 run이 있으면 업데이트 없음 (runDate만 있으므로)
+      create: { runDate },
     })
-
-    if (!run) {
-      run = await prisma.run.create({
-        data: { runDate },
-      })
-      console.log(`[Monitoring API] Run created: id=${run.id}, runDate=${run.runDate}`)
-    } else {
-      console.log(`[Monitoring API] Run found: id=${run.id}, runDate=${run.runDate}`)
-    }
+    console.log(`[Monitoring API] Run upserted: id=${run.id}, runDate=${run.runDate}`)
 
     // RunResult 업데이트 또는 생성
     const existingResult = await prisma.runResult.findUnique({

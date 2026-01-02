@@ -45,19 +45,13 @@ export async function POST(
       )
     }
 
-    // Run 조회 또는 생성
-    let run = await prisma.run.findFirst({
+    // Run 조회 또는 생성 (upsert로 race condition 방지)
+    const run = await prisma.run.upsert({
       where: { runDate: checkDate },
+      update: {}, // 기존 run이 있으면 업데이트 없음 (runDate만 있으므로)
+      create: { runDate: checkDate },
     })
-
-    if (!run) {
-      run = await prisma.run.create({
-        data: { runDate: checkDate },
-      })
-      console.log(`[Check API] Run created: id=${run.id}, runDate=${run.runDate}`)
-    } else {
-      console.log(`[Check API] Run found: id=${run.id}, runDate=${run.runDate}`)
-    }
+    console.log(`[Check API] Run upserted: id=${run.id}, runDate=${run.runDate}`)
 
     // URL 체크 실행
     const checkResult = await checkUrl(target.url)
