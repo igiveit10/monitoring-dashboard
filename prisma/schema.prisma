@@ -42,6 +42,7 @@ model RunResult {
   checkedAt          DateTime @default(now())
   errorMessage       String?
   rawEvidencePath    String?
+  myComment          String?  // 날짜별 비고 (임시로 RunResult에 저장)
 
   run    Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
   target Target @relation(fields: [targetId], references: [id], onDelete: Cascade)

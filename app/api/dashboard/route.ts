@@ -56,6 +56,19 @@ export async function GET(request: NextRequest) {
         where: { runDate },
         include: {
           results: {
+            select: {
+              id: true,
+              runId: true,
+              targetId: true,
+              foundAcademicNaver: true,
+              isPdf: true,
+              httpStatus: true,
+              finalUrl: true,
+              checkedAt: true,
+              errorMessage: true,
+              rawEvidencePath: true,
+              myComment: true, // RunResult.myComment 포함
+            },
             include: {
               target: {
                 select: {
@@ -86,6 +99,19 @@ export async function GET(request: NextRequest) {
         orderBy: { runDate: 'desc' },
         include: {
           results: {
+            select: {
+              id: true,
+              runId: true,
+              targetId: true,
+              foundAcademicNaver: true,
+              isPdf: true,
+              httpStatus: true,
+              finalUrl: true,
+              checkedAt: true,
+              errorMessage: true,
+              rawEvidencePath: true,
+              myComment: true, // RunResult.myComment 포함
+            },
             include: {
               target: {
                 select: {
@@ -127,6 +153,7 @@ export async function GET(request: NextRequest) {
             checkedAt: true,
             errorMessage: true,
             rawEvidencePath: true,
+            myComment: true, // RunResult.myComment 포함
           },
         },
       },
@@ -427,7 +454,7 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: null, // note 필드 제거 (DB에 컬럼 없음)
+          note: result.myComment || null, // RunResult.myComment 사용
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: result.foundAcademicNaver,
@@ -439,12 +466,22 @@ export async function GET(request: NextRequest) {
         }
       } else {
         // Run 결과가 없는 경우 (아직 체크 안 됨)
+        // 가장 최근 runDate의 myComment를 찾기 위해 allRuns에서 검색
+        let latestComment: string | null = null
+        for (let i = allRuns.length - 1; i >= 0; i--) {
+          const runResult = allRuns[i].results.find(r => r.targetId === target.id)
+          if (runResult && runResult.myComment) {
+            latestComment = runResult.myComment
+            break
+          }
+        }
+        
         return {
           id: target.id,
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: null, // note 필드 제거 (DB에 컬럼 없음)
+          note: latestComment, // 가장 최근 runDate의 myComment 사용
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: false,
