@@ -2,7 +2,7 @@ services:
   - type: web
     name: url-monitoring-dashboard
     env: node
-    buildCommand: npm install && npm run db:generate && npx prisma db push --accept-data-loss && npm run build
+    buildCommand: npm install && npm run db:generate && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
