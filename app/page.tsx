@@ -710,9 +710,6 @@ export default function Dashboard() {
                           {diff.keyword} - {diff.url}
                         </div>
 
-                        {diff.note && (
-                          <div className="text-xs text-gray-600 mb-2 italic">비고: {diff.note}</div>
-                        )}
 
                         <div className="space-y-1 text-sm">
                           {diff.diffs.map((d, i) => (
