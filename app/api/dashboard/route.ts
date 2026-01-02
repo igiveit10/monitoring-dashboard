@@ -52,8 +52,9 @@ export async function GET(request: NextRequest) {
     // Run이 없을 경우를 대비한 처리
     let run = null
     if (runDate) {
-      run = await prisma.run.findUnique({
+      run = await prisma.run.findFirst({
         where: { runDate },
+        orderBy: { createdAt: 'desc' }, // 최신 것 선택
         include: {
           results: {
             select: {
@@ -178,8 +179,9 @@ export async function GET(request: NextRequest) {
     // 베이스라인 Run 조회
     let baselineRun = null
     if (baselineRunDate) {
-      baselineRun = await prisma.run.findUnique({
+      baselineRun = await prisma.run.findFirst({
         where: { runDate: baselineRunDate },
+        orderBy: { createdAt: 'desc' }, // 최신 것 선택
         include: {
           results: true,
         },

@@ -11,8 +11,9 @@ export async function POST() {
     console.log(`[Runs/Today API] Request received: runDate=${today}`)
 
     // 오늘 Run이 이미 있는지 확인
-    let run = await prisma.run.findUnique({
+    let run = await prisma.run.findFirst({
       where: { runDate: today },
+      orderBy: { createdAt: 'desc' }, // 최신 것 선택
     })
 
     if (!run) {
