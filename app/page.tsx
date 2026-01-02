@@ -405,7 +405,7 @@ export default function Dashboard() {
         url: row.url,
         '정답셋 통검노출': row.csv통검노출 || '-',
         '정답셋 PDF노출': row.csvPdf노출 || 'N',
-        '정답셋 비고': row.myComment || '-',
+        '정답셋 비고': row.myComment || row.note || '-',
       }
 
       // 각 Run 날짜별 모니터링 결과 추가 (최종URL, 에러, HTTP상태 제외)
@@ -1356,9 +1356,9 @@ export default function Dashboard() {
                         <td
                           className="border p-2 overflow-hidden text-ellipsis"
                           style={{ width: monitoringColumnWidths.csv비고 }}
-                          title={row.myComment || ''}
+                          title={row.myComment || row.note || ''}
                         >
-                          {row.myComment || '-'}
+                          {row.myComment || row.note || '-'}
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
