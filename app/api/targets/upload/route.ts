@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         // 정답셋 값은 CSV에서 제공된 경우에만 업데이트
         if (currentStatus !== null) updateData.currentStatus = currentStatus
         if (csvPdfExposure !== undefined) updateData.csvPdfExposure = csvPdfExposure
-        if (note !== null) updateData.note = note
+        // note 필드 제거됨 (DB에 컬럼 없음) - 업데이트 스킵
         
         // URL은 제공된 경우에만 업데이트 (간단 형식에서는 URL 없음)
         if (url && url !== existing.url) {
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
               url,
               currentStatus,
               csvPdfExposure,
-              note,
+              // note 필드 제거됨 (DB에 컬럼 없음)
             },
           })
         } catch (error: any) {
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
                 url,
                 currentStatus,
                 csvPdfExposure,
-                note,
+                // note 필드 제거됨 (DB에 컬럼 없음)
               },
             })
           } else {

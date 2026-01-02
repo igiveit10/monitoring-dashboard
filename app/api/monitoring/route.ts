@@ -73,14 +73,7 @@ export async function POST(request: NextRequest) {
       const action = existingResult ? 'updated' : 'created'
       console.log(`[Monitoring API] RunResult ${action}: runId=${run.id}, targetId=${targetId}, foundAcademicNaver=${result.foundAcademicNaver}, isPdf=${result.isPdf}, resultId=${result.id}`)
       
-      // 비고(note)가 있으면 Target.note 업데이트
-      if (note !== undefined && note !== null) {
-        await prisma.target.update({
-          where: { id: targetId },
-          data: { note: note.trim() || null },
-        })
-        console.log(`[Monitoring API] Target.note updated: targetId=${targetId}, note=${note || '(empty)'}`)
-      }
+      // note 필드 제거됨 (DB에 컬럼 없음) - 업데이트 스킵
     } catch (upsertError: any) {
       console.error(`[Monitoring API] Upsert error for runId=${run.id}, targetId=${targetId}:`, upsertError)
       console.error(`[Monitoring API] Error code: ${upsertError.code}, message: ${upsertError.message}`)

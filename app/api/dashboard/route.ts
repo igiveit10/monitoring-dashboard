@@ -306,7 +306,7 @@ export async function GET(request: NextRequest) {
             targetId: target.id,
             keyword: target.keyword || '',
             url: target.url || '',
-            note: target.note || '',
+            note: null, // note 필드 제거 (DB에 컬럼 없음)
             diffs: changes,
           })
         }
@@ -368,7 +368,7 @@ export async function GET(request: NextRequest) {
           targetId,
           keyword: target?.keyword || '',
           url: target?.url || '',
-            note: target?.note || '',
+          note: null, // note 필드 제거 (DB에 컬럼 없음)
           diffs: changes,
         })
       }
@@ -394,7 +394,7 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: target.note && target.note.trim().length > 0 ? target.note : null, // 타겟별 비고 (날짜별 아님)
+          note: null, // note 필드 제거 (DB에 컬럼 없음)
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: result.foundAcademicNaver,
@@ -411,7 +411,7 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: target.note && target.note.trim().length > 0 ? target.note : null, // 타겟별 비고
+          note: null, // note 필드 제거 (DB에 컬럼 없음)
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: false,

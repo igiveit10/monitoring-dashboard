@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
         
         if (currentStatus !== null) updateData.currentStatus = currentStatus
         if (csvPdfExposure !== undefined) updateData.csvPdfExposure = csvPdfExposure
-        if (note !== null) updateData.note = note
+        // note 필드 제거됨 (DB에 컬럼 없음) - 업데이트 스킵
         if (url && url !== existing.url) {
           const urlExists = await prisma.target.findUnique({
             where: { url },
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
               url,
               currentStatus,
               csvPdfExposure: csvPdfExposure ?? false,
-              note,
+              // note 필드 제거됨 (DB에 컬럼 없음)
             },
           })
           createdCount++
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
                 url,
                 currentStatus,
                 csvPdfExposure: csvPdfExposure ?? false,
-                note,
+                // note 필드 제거됨 (DB에 컬럼 없음)
               },
             })
             createdCount++

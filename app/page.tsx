@@ -335,7 +335,7 @@ export default function Dashboard() {
     else if (sortBy === 'csvPdf노출') comparison = (a.csvPdf노출 || '').localeCompare(b.csvPdf노출 || '')
     else if (sortBy === 'foundAcademicNaver') comparison = (a.foundAcademicNaver ? 1 : 0) - (b.foundAcademicNaver ? 1 : 0)
     else if (sortBy === 'isPdf') comparison = (a.isPdf ? 1 : 0) - (b.isPdf ? 1 : 0)
-    else if (sortBy === 'note') comparison = (a.note || '').localeCompare(b.note || '')
+    else if (sortBy === 'note') comparison = 0 // note 필드 제거됨
     else if (sortBy === 'httpStatus') comparison = (a.httpStatus ?? 0) - (b.httpStatus ?? 0)
     else if (sortBy === 'finalUrl') comparison = (a.finalUrl || '').localeCompare(b.finalUrl || '')
     else if (sortBy === 'checkedAt') {
@@ -404,7 +404,7 @@ export default function Dashboard() {
         url: row.url,
         '정답셋 통검노출': row.csv통검노출 || '-',
         '정답셋 PDF노출': row.csvPdf노출 || 'N',
-        '정답셋 비고': row.note || '',
+        '정답셋 비고': '-',
       }
 
       // 각 Run 날짜별 모니터링 결과 추가 (최종URL, 에러, HTTP상태 제외)
@@ -676,9 +676,6 @@ export default function Dashboard() {
                                       {diff.keyword} - {diff.url}
                                     </div>
 
-                                    {diff.note && (
-                                      <div className="text-xs text-gray-600 mb-2 italic">비고: {diff.note}</div>
-                                    )}
 
                                     <div className="space-y-1 text-sm">
                                       {diff.diffs.map((d, i) => (
@@ -1006,8 +1003,8 @@ export default function Dashboard() {
                               {row.csvPdf노출 === 'Y' ? <span className="text-green-600 font-bold">Y</span> : <span className="text-red-600 font-bold">N</span>}
                             </td>
 
-                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title={row.note || ''}>
-                              {row.note && row.note.trim().length > 0 ? row.note : '-'}
+                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title="">
+                              -
                             </td>
 
                             {(dashboardData?.allRuns ?? []).map((run) => {
@@ -1361,9 +1358,9 @@ export default function Dashboard() {
                         <td
                           className="border p-2 overflow-hidden text-ellipsis"
                           style={{ width: monitoringColumnWidths.csv비고 }}
-                          title={row.note || ''}
+                          title=""
                         >
-                          {row.note || '-'}
+                          -
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
