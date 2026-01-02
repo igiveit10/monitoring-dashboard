@@ -44,6 +44,18 @@ export async function POST(request: NextRequest) {
 
     let result
     try {
+      // update 데이터 준비 (myComment가 undefined면 제외)
+      const updateData: any = {
+        foundAcademicNaver: foundAcademicNaver ?? false,
+        isPdf: isPdf ?? false,
+        checkedAt: new Date(),
+      }
+      
+      // myComment가 undefined가 아니면 업데이트에 포함
+      if (myComment !== undefined) {
+        updateData.myComment = myComment && myComment.trim() !== '' ? myComment.trim() : null
+      }
+      
       result = await prisma.runResult.upsert({
         where: {
           runId_targetId: {
@@ -51,18 +63,13 @@ export async function POST(request: NextRequest) {
             targetId,
           },
         },
-        update: {
-          foundAcademicNaver: foundAcademicNaver ?? false,
-          isPdf: isPdf ?? false,
-          checkedAt: new Date(),
-          myComment: myComment && myComment.trim() !== '' ? myComment.trim() : null,
-        },
+        update: updateData,
         create: {
           runId: run.id,
           targetId,
           foundAcademicNaver: foundAcademicNaver ?? false,
           isPdf: isPdf ?? false,
-          myComment: myComment && myComment.trim() !== '' ? myComment.trim() : null,
+          myComment: myComment !== undefined && myComment && myComment.trim() !== '' ? myComment.trim() : null,
         },
       })
 

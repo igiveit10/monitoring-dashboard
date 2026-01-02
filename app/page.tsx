@@ -777,9 +777,9 @@ export default function Dashboard() {
                         let latest통검노출 = row.csv통검노출 || 'N'
                         let latestPdf노출 = row.csvPdf노출 || 'N'
                         
-                        // 현재 선택한 날짜의 myComment 찾기
+                        // 현재 선택한 날짜의 myComment 찾기 (row.myComment 우선 사용)
                         const currentRun = dashboardData.allRuns.find((r) => r.runDate === today)
-                        const currentComment = currentRun?.results.find((r) => r.targetId === row.id)?.myComment || ''
+                        const currentComment = row.myComment ?? currentRun?.results.find((r) => r.targetId === row.id)?.myComment ?? ''
                         
                         for (const run of sortedRuns) {
                           const result = run.results.find((r) => r.targetId === row.id)
@@ -940,8 +940,8 @@ export default function Dashboard() {
                                     let latest통검노출 = runResult?.foundAcademicNaver ? 'Y' : (row.csv통검노출 || 'N')
                                     let latestPdf노출 = runResult?.isPdf ? 'Y' : (row.csvPdf노출 || 'N')
                                     
-                                    // 현재 선택한 날짜의 myComment 찾기
-                                    const currentComment = runResult?.myComment || ''
+                                    // 현재 선택한 날짜의 myComment 찾기 (row.myComment 우선 사용)
+                                    const currentComment = row.myComment ?? runResult?.myComment ?? ''
                                     
                                     if (!runResult) {
                                       const sortedRuns = [...(dashboardData.allRuns || [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
@@ -1150,9 +1150,9 @@ export default function Dashboard() {
                       let latest통검노출 = row.csv통검노출 || 'N'
                       let latestPdf노출 = row.csvPdf노출 || 'N'
                       
-                      // 현재 선택한 날짜의 myComment 찾기
+                      // 현재 선택한 날짜의 myComment 찾기 (row.myComment 우선 사용)
                       const currentRun = dashboardData.allRuns.find((r) => r.runDate === newDate)
-                      const currentComment = currentRun?.results.find((r) => r.targetId === row.id)?.myComment || ''
+                      const currentComment = row.myComment ?? currentRun?.results.find((r) => r.targetId === row.id)?.myComment ?? ''
                       
                       for (const run of sortedRuns) {
                         const result = run.results.find((r) => r.targetId === row.id)
@@ -1371,9 +1371,9 @@ export default function Dashboard() {
                         }
                       }
                       
-                      // 현재 선택한 날짜의 myComment 찾기
+                      // 현재 선택한 날짜의 myComment 찾기 (row.myComment 우선 사용)
                       const currentRun = dashboardData.allRuns.find((r) => r.runDate === monitoringModalDate)
-                      const currentComment = currentRun?.results.find((r) => r.targetId === row.id)?.myComment || ''
+                      const currentComment = row.myComment ?? currentRun?.results.find((r) => r.targetId === row.id)?.myComment ?? ''
                       
                       const data =
                         monitoringData[row.id] || {
@@ -1433,7 +1433,7 @@ export default function Dashboard() {
                         <td className="border p-2" style={{ width: monitoringColumnWidths.csv비고 }}>
                           <input
                             type="text"
-                            value={data.비고 || ''}
+                            value={data.비고 ?? row.myComment ?? ''}
                             onChange={(e) => {
                               setMonitoringData({
                                 ...monitoringData,
