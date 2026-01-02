@@ -1270,6 +1270,23 @@ export default function Dashboard() {
                 </thead>
 
                 <tbody>
+                  {(() => {
+                    // 디버깅: myComment 또는 note가 있는 row 확인
+                    const rowWithComment = dashboardData?.tableData?.find(row => row.myComment || row.note)
+                    if (rowWithComment) {
+                      console.log('[Dashboard UI] Sample row with comment:', {
+                        id: rowWithComment.id,
+                        keyword: rowWithComment.keyword,
+                        myComment: rowWithComment.myComment,
+                        note: rowWithComment.note,
+                        myCommentType: typeof rowWithComment.myComment,
+                        noteType: typeof rowWithComment.note,
+                        hasMyComment: !!rowWithComment.myComment,
+                        hasNote: !!rowWithComment.note,
+                      })
+                    }
+                    return null
+                  })()}
                   {[...dashboardData.tableData]
                     .sort((a, b) => {
                       // 정답셋 통검노출 Y가 먼저
@@ -1356,9 +1373,13 @@ export default function Dashboard() {
                         <td
                           className="border p-2 overflow-hidden text-ellipsis"
                           style={{ width: monitoringColumnWidths.csv비고 }}
-                          title={row.myComment || row.note || ''}
+                          title={row.myComment ?? row.note ?? ''}
                         >
-                          {row.myComment || row.note || '-'}
+                          {(() => {
+                            // 명확한 우선순위: myComment > note > '-'
+                            const comment = row.myComment ?? row.note ?? null
+                            return comment || '-'
+                          })()}
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>

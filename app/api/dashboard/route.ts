@@ -522,6 +522,19 @@ export async function GET(request: NextRequest) {
     
     // 정답셋 기준으로 tableData 정렬: YY > YN > NY > NN
     const tableData = sortTableDataByAnswerSet(tableDataRaw)
+    
+    // 디버깅: myComment 또는 note가 있는 row 확인
+    const rowWithComment = tableData.find(row => row.myComment || row.note)
+    if (rowWithComment) {
+      console.log('[Dashboard API] Sample row with comment:', {
+        id: rowWithComment.id,
+        keyword: rowWithComment.keyword,
+        myComment: rowWithComment.myComment,
+        note: rowWithComment.note,
+        myCommentType: typeof rowWithComment.myComment,
+        noteType: typeof rowWithComment.note,
+      })
+    }
 
     return NextResponse.json({
       kpi: {
