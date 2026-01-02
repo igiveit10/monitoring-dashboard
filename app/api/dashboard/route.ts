@@ -478,8 +478,7 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: result.myComment || null, // 하위 호환성 유지
-          myComment: result.myComment || null, // RunResult.myComment 그대로 전달
+          myComment: result.myComment || null, // RunResult.myComment 단일 소스
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: result.foundAcademicNaver,
@@ -506,8 +505,7 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: latestComment, // 하위 호환성 유지
-          myComment: latestComment, // 가장 최근 runDate의 myComment 그대로 전달
+          myComment: latestComment, // 가장 최근 runDate의 myComment 단일 소스
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: false,
@@ -523,16 +521,14 @@ export async function GET(request: NextRequest) {
     // 정답셋 기준으로 tableData 정렬: YY > YN > NY > NN
     const tableData = sortTableDataByAnswerSet(tableDataRaw)
     
-    // 디버깅: myComment 또는 note가 있는 row 확인
-    const rowWithComment = tableData.find(row => row.myComment || row.note)
+    // 디버깅: myComment가 있는 row 확인
+    const rowWithComment = tableData.find(row => row.myComment)
     if (rowWithComment) {
-      console.log('[Dashboard API] Sample row with comment:', {
+      console.log('[Dashboard API] Sample row with myComment:', {
         id: rowWithComment.id,
         keyword: rowWithComment.keyword,
         myComment: rowWithComment.myComment,
-        note: rowWithComment.note,
         myCommentType: typeof rowWithComment.myComment,
-        noteType: typeof rowWithComment.note,
       })
     }
 

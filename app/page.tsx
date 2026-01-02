@@ -67,8 +67,7 @@ interface DashboardData {
     keyword: string
     url: string
     currentStatus: string | null
-    note: string | null
-    myComment: string | null // RunResult.myComment
+    myComment: string | null // RunResult.myComment 단일 소스
     csv통검노출: string | null
     csvPdf노출: string
     foundAcademicNaver: boolean
@@ -89,6 +88,7 @@ interface DashboardData {
       finalUrl: string | null
       checkedAt: string
       errorMessage: string | null
+      myComment: string | null // RunResult.myComment
     }>
   }>
 }
@@ -405,7 +405,7 @@ export default function Dashboard() {
         url: row.url,
         '정답셋 통검노출': row.csv통검노출 || '-',
         '정답셋 PDF노출': row.csvPdf노출 || 'N',
-        '정답셋 비고': row.myComment || row.note || '-',
+        '정답셋 비고': row.myComment && row.myComment.trim() !== '' ? row.myComment : '-',
       }
 
       // 각 Run 날짜별 모니터링 결과 추가 (최종URL, 에러, HTTP상태 제외)
@@ -1271,18 +1271,15 @@ export default function Dashboard() {
 
                 <tbody>
                   {(() => {
-                    // 디버깅: myComment 또는 note가 있는 row 확인
-                    const rowWithComment = dashboardData?.tableData?.find(row => row.myComment || row.note)
+                    // 디버깅: myComment가 있는 row 확인
+                    const rowWithComment = dashboardData?.tableData?.find(row => row.myComment)
                     if (rowWithComment) {
-                      console.log('[Dashboard UI] Sample row with comment:', {
+                      console.log('[Dashboard UI] Sample row with myComment:', {
                         id: rowWithComment.id,
                         keyword: rowWithComment.keyword,
                         myComment: rowWithComment.myComment,
-                        note: rowWithComment.note,
                         myCommentType: typeof rowWithComment.myComment,
-                        noteType: typeof rowWithComment.note,
                         hasMyComment: !!rowWithComment.myComment,
-                        hasNote: !!rowWithComment.note,
                       })
                     }
                     return null
@@ -1373,24 +1370,9 @@ export default function Dashboard() {
                         <td
                           className="border p-2 overflow-hidden text-ellipsis"
                           style={{ width: monitoringColumnWidths.csv비고 }}
-                          title={row.myComment ?? row.note ?? ''}
+                          title={row.myComment || ''}
                         >
-                          {(() => {
-                            // 디버깅: 실제 값 확인
-                            const myComment = row.myComment
-                            const note = row.note
-                            const displayValue = myComment ?? note ?? '-'
-                            if (myComment || note) {
-                              console.log('[Dashboard UI] 비고 렌더링:', {
-                                id: row.id,
-                                keyword: row.keyword,
-                                myComment,
-                                note,
-                                displayValue,
-                              })
-                            }
-                            return displayValue
-                          })()}
+                          {row.myComment && row.myComment.trim() !== '' ? row.myComment : '-'}
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
