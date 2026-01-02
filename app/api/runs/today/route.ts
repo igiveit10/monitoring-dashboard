@@ -28,7 +28,7 @@ export async function POST() {
         csvPdfExposure: true,
         createdAt: true,
         updatedAt: true,
-        // note 필드 제외 (DB에 컬럼 없음)
+        note: true, // Target.note 포함
       },
     })
     // 정답셋 기준으로 정렬: YY > YN > NY > NN (모니터링 실행 순서)

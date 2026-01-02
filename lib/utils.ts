@@ -61,10 +61,10 @@ export function normalizeRunDate(dateInput: string | Date | null | undefined): s
  * 정렬 우선순위: YY (3) > YN (2) > NY (1) > NN (0)
  * 같은 그룹 내에서는 id asc로 정렬
  * 
- * @param targets Target 배열 (note 필드 제외 가능)
+ * @param targets Target 배열
  * @returns 정렬된 Target 배열
  */
-export function sortTargetsByAnswerSet(targets: Omit<Target, 'note'>[]): Omit<Target, 'note'>[] {
+export function sortTargetsByAnswerSet(targets: Target[]): Target[] {
   return [...targets].sort((a, b) => {
     // answer_search_exposed 계산 (currentStatus === '노출'이면 'Y', 아니면 'N')
     const aSearchExposed = a.currentStatus === '노출' ? 'Y' : 'N'
