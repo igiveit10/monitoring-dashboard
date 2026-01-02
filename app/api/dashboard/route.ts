@@ -68,8 +68,6 @@ export async function GET(request: NextRequest) {
               errorMessage: true,
               rawEvidencePath: true,
               myComment: true, // RunResult.myComment 포함
-            },
-            include: {
               target: {
                 select: {
                   id: true,
@@ -111,8 +109,6 @@ export async function GET(request: NextRequest) {
               errorMessage: true,
               rawEvidencePath: true,
               myComment: true, // RunResult.myComment 포함
-            },
-            include: {
               target: {
                 select: {
                   id: true,
