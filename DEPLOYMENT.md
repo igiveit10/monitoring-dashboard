@@ -186,7 +186,7 @@ git push origin main
    - **Branch**: `main` (또는 기본 브랜치)
    - **Root Directory**: (비워두기)
    - **Environment**: `Node`
-   - **Build Command**: `npm install && npm run db:generate && npx prisma db push --accept-data-loss && npm run build`
+   - **Build Command**: `npm install && npm run db:generate && npm run build`
    - **Start Command**: `npm start`
 4. "Advanced" → "Add Disk" 클릭
    - **Mount Path**: `/opt/render/project/src/data`
