@@ -1376,9 +1376,20 @@ export default function Dashboard() {
                           title={row.myComment ?? row.note ?? ''}
                         >
                           {(() => {
-                            // 명확한 우선순위: myComment > note > '-'
-                            const comment = row.myComment ?? row.note ?? null
-                            return comment || '-'
+                            // 디버깅: 실제 값 확인
+                            const myComment = row.myComment
+                            const note = row.note
+                            const displayValue = myComment ?? note ?? '-'
+                            if (myComment || note) {
+                              console.log('[Dashboard UI] 비고 렌더링:', {
+                                id: row.id,
+                                keyword: row.keyword,
+                                myComment,
+                                note,
+                                displayValue,
+                              })
+                            }
+                            return displayValue
                           })()}
                         </td>
 
