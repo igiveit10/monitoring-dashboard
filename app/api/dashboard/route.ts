@@ -189,7 +189,7 @@ export async function GET(request: NextRequest) {
               checkedAt: true,
               errorMessage: true,
               rawEvidencePath: true,
-              // myComment 필드는 DB에 없을 수 있으므로 제외
+              myComment: true, // RunResult.myComment 포함
             },
           },
         },
@@ -276,7 +276,7 @@ export async function GET(request: NextRequest) {
               checkedAt: true,
               errorMessage: true,
               rawEvidencePath: true,
-              // myComment 필드는 DB에 없을 수 있으므로 제외
+              myComment: true, // RunResult.myComment 포함
             },
           },
         },
@@ -478,7 +478,8 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: result.myComment || null, // RunResult.myComment 사용
+          note: result.myComment || null, // 하위 호환성 유지
+          myComment: result.myComment || null, // RunResult.myComment 그대로 전달
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: result.foundAcademicNaver,
@@ -505,7 +506,8 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: latestComment, // 가장 최근 runDate의 myComment 사용
+          note: latestComment, // 하위 호환성 유지
+          myComment: latestComment, // 가장 최근 runDate의 myComment 그대로 전달
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: false,

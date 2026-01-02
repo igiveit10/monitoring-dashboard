@@ -68,6 +68,7 @@ interface DashboardData {
     url: string
     currentStatus: string | null
     note: string | null
+    myComment: string | null // RunResult.myComment
     csv통검노출: string | null
     csvPdf노출: string
     foundAcademicNaver: boolean
@@ -404,7 +405,7 @@ export default function Dashboard() {
         url: row.url,
         '정답셋 통검노출': row.csv통검노출 || '-',
         '정답셋 PDF노출': row.csvPdf노출 || 'N',
-        '정답셋 비고': row.note || '-',
+        '정답셋 비고': row.myComment || '-',
       }
 
       // 각 Run 날짜별 모니터링 결과 추가 (최종URL, 에러, HTTP상태 제외)
@@ -1355,9 +1356,9 @@ export default function Dashboard() {
                         <td
                           className="border p-2 overflow-hidden text-ellipsis"
                           style={{ width: monitoringColumnWidths.csv비고 }}
-                          title={row.note || ''}
+                          title={row.myComment || ''}
                         >
-                          {row.note || '-'}
+                          {row.myComment || '-'}
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
