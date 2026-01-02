@@ -1370,9 +1370,9 @@ export default function Dashboard() {
                         <td
                           className="border p-2 overflow-hidden text-ellipsis"
                           style={{ width: monitoringColumnWidths.csv비고 }}
-                          title={row.myComment || ''}
+                          title={row.myComment ?? ''}
                         >
-                          {row.myComment && row.myComment.trim() !== '' ? row.myComment : '-'}
+                          {row.myComment ?? '-'}
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
