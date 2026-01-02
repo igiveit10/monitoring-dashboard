@@ -1001,8 +1001,8 @@ export default function Dashboard() {
                               {row.csvPdf노출 === 'Y' ? <span className="text-green-600 font-bold">Y</span> : <span className="text-red-600 font-bold">N</span>}
                             </td>
 
-                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title="">
-                              -
+                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title={row.myComment ?? ''}>
+                              {row.myComment ?? '-'}
                             </td>
 
                             {(dashboardData?.allRuns ?? []).map((run) => {
@@ -1368,20 +1368,11 @@ export default function Dashboard() {
                         </td>
 
                         <td
-                          className="border p-2 overflow-hidden text-ellipsis cursor-pointer bg-blue-50 hover:bg-blue-100"
+                          className="border p-2 overflow-hidden text-ellipsis"
                           style={{ width: monitoringColumnWidths.csv비고 }}
                           title={row.myComment ?? ''}
-                          onClick={() => {
-                            alert(JSON.stringify({
-                              myComment: row.myComment,
-                              note: (row as any).note,
-                              rowKeys: Object.keys(row),
-                              rowId: row.id,
-                              keyword: row.keyword,
-                            }, null, 2))
-                          }}
                         >
-                          {String(row.myComment ?? '-')}
+                          {row.myComment ?? '-'}
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
