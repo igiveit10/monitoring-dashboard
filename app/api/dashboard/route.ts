@@ -520,17 +520,6 @@ export async function GET(request: NextRequest) {
     
     // 정답셋 기준으로 tableData 정렬: YY > YN > NY > NN
     const tableData = sortTableDataByAnswerSet(tableDataRaw)
-    
-    // 디버깅: myComment가 있는 row 확인
-    const rowWithComment = tableData.find(row => row.myComment)
-    if (rowWithComment) {
-      console.log('[Dashboard API] Sample row with myComment:', {
-        id: rowWithComment.id,
-        keyword: rowWithComment.keyword,
-        myComment: rowWithComment.myComment,
-        myCommentType: typeof rowWithComment.myComment,
-      })
-    }
 
     return NextResponse.json({
       kpi: {

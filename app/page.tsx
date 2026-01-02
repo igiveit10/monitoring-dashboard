@@ -1270,20 +1270,6 @@ export default function Dashboard() {
                 </thead>
 
                 <tbody>
-                  {(() => {
-                    // 디버깅: myComment가 있는 row 확인
-                    const rowWithComment = dashboardData?.tableData?.find(row => row.myComment)
-                    if (rowWithComment) {
-                      console.log('[Dashboard UI] Sample row with myComment:', {
-                        id: rowWithComment.id,
-                        keyword: rowWithComment.keyword,
-                        myComment: rowWithComment.myComment,
-                        myCommentType: typeof rowWithComment.myComment,
-                        hasMyComment: !!rowWithComment.myComment,
-                      })
-                    }
-                    return null
-                  })()}
                   {[...dashboardData.tableData]
                     .sort((a, b) => {
                       // 정답셋 통검노출 Y가 먼저
