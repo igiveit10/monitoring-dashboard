@@ -411,21 +411,7 @@ export default function Dashboard() {
         url: row.url,
         '정답셋 통검노출': row.csv통검노출 || '-',
         '정답셋 PDF노출': row.csvPdf노출 || 'N',
-        '정답셋 비고': (() => {
-          // 현재 runDate의 myComment가 없으면 가장 최근 myComment 찾기
-          const currentComment = row.myComment
-          if (currentComment && currentComment.trim() !== '') return currentComment
-          
-          // allRuns에서 가장 최근 non-null myComment 찾기
-          const sortedRuns = [...(dashboardData?.allRuns ?? [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
-          for (const run of sortedRuns) {
-            const result = run.results.find((r) => r.targetId === row.id)
-            if (result?.myComment && result.myComment.trim() !== '') {
-              return result.myComment
-            }
-          }
-          return '-'
-        })(),
+        '정답셋 비고': row.note && row.note.trim() !== '' ? row.note : '-',
       }
 
       // 각 Run 날짜별 모니터링 결과 추가 (최종URL, 에러, HTTP상태 제외)
@@ -1037,36 +1023,8 @@ export default function Dashboard() {
                               {row.csvPdf노출 === 'Y' ? <span className="text-green-600 font-bold">Y</span> : <span className="text-red-600 font-bold">N</span>}
                             </td>
 
-                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title={(() => {
-                              // 현재 runDate의 myComment가 없으면 가장 최근 myComment 찾기
-                              const currentComment = row.myComment
-                              if (currentComment) return currentComment
-                              
-                              // allRuns에서 가장 최근 non-null myComment 찾기
-                              const sortedRuns = [...(dashboardData?.allRuns ?? [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
-                              for (const run of sortedRuns) {
-                                const result = run.results.find((r) => r.targetId === row.id)
-                                if (result?.myComment) {
-                                  return result.myComment
-                                }
-                              }
-                              return ''
-                            })()}>
-                              {(() => {
-                                // 현재 runDate의 myComment가 없으면 가장 최근 myComment 찾기
-                                const currentComment = row.myComment
-                                if (currentComment) return currentComment
-                                
-                                // allRuns에서 가장 최근 non-null myComment 찾기
-                                const sortedRuns = [...(dashboardData?.allRuns ?? [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
-                                for (const run of sortedRuns) {
-                                  const result = run.results.find((r) => r.targetId === row.id)
-                                  if (result?.myComment) {
-                                    return result.myComment
-                                  }
-                                }
-                                return '-'
-                              })()}
+                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title={row.note ?? ''}>
+                              {row.note ?? '-'}
                             </td>
 
                             {(dashboardData?.allRuns ?? []).map((run) => {
