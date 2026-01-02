@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
                   csvPdfExposure: true,
                   createdAt: true,
                   updatedAt: true,
-                  note: true, // Target.note 포함
+                  // note 필드 제외 (DB에 컬럼 없음)
                 },
               },
             },
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
                   csvPdfExposure: true,
                   createdAt: true,
                   updatedAt: true,
-                  note: true, // Target.note 포함
+                  // note 필드 제외 (DB에 컬럼 없음)
                 },
               },
             },
@@ -220,7 +220,7 @@ export async function GET(request: NextRequest) {
         url: true,
         currentStatus: true,
         csvPdfExposure: true,
-        note: true, // Target.note 포함
+        // note 필드 제외 (DB에 컬럼 없음)
         createdAt: true,
         updatedAt: true,
       },
@@ -478,7 +478,7 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: target.note || null, // Target.note 포함
+          // note 필드 제외 (DB에 컬럼 없음)
           myComment: result.myComment || null, // RunResult.myComment 단일 소스
           csv통검노출,
           csvPdf노출,
@@ -506,7 +506,7 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          note: target.note || null, // Target.note 포함
+          // note 필드 제외 (DB에 컬럼 없음)
           myComment: latestComment, // 가장 최근 runDate의 myComment 단일 소스
           csv통검노출,
           csvPdf노출,

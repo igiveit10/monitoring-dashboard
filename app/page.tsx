@@ -67,7 +67,6 @@ interface DashboardData {
     keyword: string
     url: string
     currentStatus: string | null
-    note: string | null // Target.note 포함
     myComment: string | null // RunResult.myComment 단일 소스
     csv통검노출: string | null
     csvPdf노출: string
@@ -105,7 +104,7 @@ export default function Dashboard() {
   const [isMonitoringModalOpen, setIsMonitoringModalOpen] = useState(false)
   const [monitoringModalDate, setMonitoringModalDate] = useState<string>('')
   const [monitoringData, setMonitoringData] = useState<
-    Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string; note: string }>
+    Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }>
   >({})
 
   // localStorage에서 모니터링 데이터 복원
@@ -115,11 +114,11 @@ export default function Dashboard() {
       if (saved && monitoringModalDate) {
         try {
           const parsed = JSON.parse(saved)
-          // 기존 데이터에 비고/note 필드가 없으면 추가
+          // 기존 데이터에 비고 필드가 없으면 추가
           const parsedWith비고 = Object.keys(parsed).reduce((acc, key) => {
-            acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '', note: parsed[key].note || '' }
+            acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '' }
             return acc
-          }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string; note: string }>)
+          }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }>)
           setMonitoringData(parsedWith비고)
         } catch (e) {
           console.error('Failed to parse saved monitoring data', e)
@@ -411,7 +410,7 @@ export default function Dashboard() {
         url: row.url,
         '정답셋 통검노출': row.csv통검노출 || '-',
         '정답셋 PDF노출': row.csvPdf노출 || 'N',
-        '정답셋 비고': row.note && row.note.trim() !== '' ? row.note : '-',
+        '정답셋 비고': '-',
       }
 
       // 각 Run 날짜별 모니터링 결과 추가 (최종URL, 에러, HTTP상태 제외)
@@ -757,7 +756,7 @@ export default function Dashboard() {
                       const today = new Date().toISOString().split('T')[0]
                       setMonitoringModalDate(today)
 
-                      const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string; note: string }> = {}
+                      const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }> = {}
                       dashboardData.tableData.forEach((row) => {
                         // 가장 최근 Run의 결과 찾기
                         const sortedRuns = [...(dashboardData.allRuns || [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
@@ -782,7 +781,6 @@ export default function Dashboard() {
                           pdf노출: latestPdf노출,
                           완료: false,
                           비고: currentComment || '',
-                          note: row.note || '',
                         }
                       })
                       setMonitoringData(initialData)
@@ -907,9 +905,9 @@ export default function Dashboard() {
                                         const parsed = JSON.parse(saved)
                                         // 기존 데이터에 비고/note 필드가 없으면 추가
                                         const parsedWith비고 = Object.keys(parsed).reduce((acc, key) => {
-                                          acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '', note: parsed[key].note || '' }
+                                          acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '' }
                                           return acc
-                                        }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string; note: string }>)
+                                        }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }>)
                                         setMonitoringData(parsedWith비고)
                                         setIsMonitoringModalOpen(true)
                                         return
@@ -919,7 +917,7 @@ export default function Dashboard() {
                                     }
                                   }
 
-                                  const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string; note: string }> = {}
+                                  const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }> = {}
                                   dashboardData.tableData.forEach((row) => {
                                     // 해당 Run의 결과를 먼저 확인
                                     const runResult = run.results.find((r) => r.targetId === row.id)
@@ -948,7 +946,6 @@ export default function Dashboard() {
                                       pdf노출: latestPdf노출,
                                       완료: false,
                                       비고: currentComment || '',
-                                      note: row.note || '',
                                     }
                                   })
                                   setMonitoringData(initialData)
@@ -1023,8 +1020,8 @@ export default function Dashboard() {
                               {row.csvPdf노출 === 'Y' ? <span className="text-green-600 font-bold">Y</span> : <span className="text-red-600 font-bold">N</span>}
                             </td>
 
-                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title={row.note ?? ''}>
-                              {row.note ?? '-'}
+                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title="">
+                              -
                             </td>
 
                             {(dashboardData?.allRuns ?? []).map((run) => {
@@ -1093,9 +1090,9 @@ export default function Dashboard() {
                           const parsed = JSON.parse(saved)
                           // 기존 데이터에 비고/note 필드가 없으면 추가
                           const parsedWith비고 = Object.keys(parsed).reduce((acc, key) => {
-                            acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '', note: parsed[key].note || '' }
+                            acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '' }
                             return acc
-                          }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string; note: string }>)
+                          }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }>)
                           setMonitoringData(parsedWith비고)
                           return
                         } catch (e) {
@@ -1104,7 +1101,7 @@ export default function Dashboard() {
                       }
                     }
 
-                    const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string; note: string }> = {}
+                    const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }> = {}
                     dashboardData.tableData.forEach((row) => {
                       // 가장 최근 Run의 결과 찾기
                       const sortedRuns = [...(dashboardData.allRuns || [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
@@ -1129,7 +1126,6 @@ export default function Dashboard() {
                         pdf노출: latestPdf노출,
                         완료: false,
                         비고: currentComment || '',
-                        note: row.note || '',
                       }
                     })
                     setMonitoringData(initialData)
@@ -1186,39 +1182,7 @@ export default function Dashboard() {
                         console.log(`[Frontend] All ${results.length} targets saved successfully`)
                       }
 
-                      // Target.note 업데이트 (변경된 것만)
-                      const noteUpdates = Object.entries(monitoringData)
-                        .filter(([targetId, data]) => {
-                          const originalNote = dashboardData.tableData.find(r => r.id === targetId)?.note || ''
-                          return data.note !== originalNote
-                        })
-                        .map(([targetId, data]) => ({
-                          targetId,
-                          note: data.note || '',
-                        }))
-
-                      if (noteUpdates.length > 0) {
-                        console.log(`[Frontend] Updating ${noteUpdates.length} target notes`)
-                        try {
-                          const noteResponse = await fetch('/api/targets/bulk-note', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ noteUpdates }),
-                          })
-
-                          if (!noteResponse.ok) {
-                            const errorData = await noteResponse.json().catch(() => ({}))
-                            console.error(`[Frontend] Failed to update notes:`, errorData)
-                            throw new Error(`Failed to update notes: ${errorData.message || noteResponse.statusText}`)
-                          }
-
-                          const noteResult = await noteResponse.json()
-                          console.log(`[Frontend] Successfully updated ${noteResult.updatedCount} target notes`)
-                        } catch (error) {
-                          console.error(`[Frontend] Error updating notes:`, error)
-                          alert(`비고 저장 중 오류가 발생했습니다: ${error instanceof Error ? error.message : String(error)}`)
-                        }
-                      }
+                      // Target.note 업데이트 비활성화 (DB에 컬럼 없음)
 
                       if (typeof window !== 'undefined') {
                         localStorage.removeItem(`monitoring_${monitoringModalDate}`)
@@ -1377,7 +1341,6 @@ export default function Dashboard() {
                           pdf노출: latestPdf노출,
                           완료: false,
                           비고: currentComment || '',
-                          note: row.note || '',
                         }
 
                       const 통검변동 = row.csv통검노출 !== null && data.통검노출 !== row.csv통검노출
@@ -1430,15 +1393,10 @@ export default function Dashboard() {
                         <td className="border p-2" style={{ width: monitoringColumnWidths.csv비고 }}>
                           <input
                             type="text"
-                            value={monitoringData[row.id]?.note !== undefined ? monitoringData[row.id].note : (row.note ?? '')}
-                            onChange={(e) => {
-                              setMonitoringData({
-                                ...monitoringData,
-                                [row.id]: { ...data, note: e.target.value },
-                              })
-                            }}
+                            value=""
+                            disabled
                             placeholder="-"
-                            className="w-full px-2 py-1 text-sm border rounded"
+                            className="w-full px-2 py-1 text-sm border rounded bg-gray-100 cursor-not-allowed"
                           />
                         </td>
 
