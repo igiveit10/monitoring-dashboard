@@ -1,7 +1,7 @@
 /**
  * 코멘트 일괄 적용 스크립트
  * 
- * 목적: RunResult.comment 필드에 코멘트를 일괄 업데이트
+ * 목적: Target.note 필드에 코멘트를 일괄 업데이트
  * 실행: Render Shell에서 npx tsx scripts/applyComments.ts
  */
 
@@ -51,31 +51,13 @@ const COMMENT_MAPPING: Record<string, string> = {
   'd309147771': '다른논문, 고령 운전자를 위한 조건부 운전면허제도 개선방향 연구 - 한국ITS학회',
 }
 
-const TARGET_RUN_DATE = '2025-12-31'
-
 async function main() {
   console.log('[APPLY-COMMENTS] Starting...')
-  console.log(`[APPLY-COMMENTS] Target runDate: ${TARGET_RUN_DATE}`)
   console.log(`[APPLY-COMMENTS] Comment mappings: ${Object.keys(COMMENT_MAPPING).length} entries`)
 
   const prisma = getPrisma()
 
   try {
-    const normalizedRunDate = normalizeRunDate(TARGET_RUN_DATE)
-    console.log(`[APPLY-COMMENTS] Normalized runDate: ${normalizedRunDate}`)
-
-    // Run 조회
-    const run = await prisma.run.findUnique({
-      where: { runDate: normalizedRunDate },
-    })
-
-    if (!run) {
-      console.error(`[APPLY-COMMENTS] ERROR: Run not found for runDate=${normalizedRunDate}`)
-      process.exit(1)
-    }
-
-    console.log(`[APPLY-COMMENTS] Run found: id=${run.id}`)
-
     let updatedCount = 0
     let notFoundCount = 0
 
@@ -89,14 +71,13 @@ async function main() {
           continue
         }
 
-        // RunResult 업데이트
-        const result = await tx.runResult.updateMany({
+        // Target.note 업데이트
+        const result = await tx.target.updateMany({
           where: {
-            runId: run.id,
-            targetId: targetId,
+            id: targetId,
           },
           data: {
-            myComment: trimmedComment,
+            note: trimmedComment,
           },
         })
 
@@ -105,7 +86,7 @@ async function main() {
           console.log(`[APPLY-COMMENTS] Updated targetId=${targetId}: "${trimmedComment.substring(0, 50)}${trimmedComment.length > 50 ? '...' : ''}"`)
         } else {
           notFoundCount++
-          console.warn(`[APPLY-COMMENTS] RunResult not found: targetId=${targetId}, runDate=${normalizedRunDate}`)
+          console.warn(`[APPLY-COMMENTS] Target not found: targetId=${targetId}`)
         }
       }
     })

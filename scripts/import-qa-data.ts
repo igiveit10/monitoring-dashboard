@@ -63,7 +63,7 @@ async function main() {
     // PDF 노출은 별도 필드로 저장 (비고와 분리)
     const csvPdfExposure = pdf노출 === 'Y'
     // 비고는 참고용 텍스트만 저장 (PDF 노출 정보 제외)
-    const myComment = 비고 || null
+    const note = 비고 || null
 
     try {
       await prisma.target.upsert({
@@ -72,7 +72,7 @@ async function main() {
           keyword: title,
           currentStatus,
           csvPdfExposure,
-          myComment,
+          note,
           updatedAt: new Date(),
         },
         create: {
@@ -80,7 +80,7 @@ async function main() {
           url,
           currentStatus,
           csvPdfExposure,
-          myComment,
+          note,
         },
       })
       successCount++

@@ -5,27 +5,9 @@ const prisma = new PrismaClient()
 
 export const dynamic = 'force-dynamic'
 
-// 진단 API: DB 상태 확인 (ADMIN_TOKEN 필요)
+// 진단 API: DB 상태 확인
 export async function GET(request: NextRequest) {
   try {
-    // ADMIN_TOKEN 검증
-    const authHeader = request.headers.get('authorization')
-    const adminToken = process.env.ADMIN_TOKEN
-
-    if (!adminToken) {
-      return NextResponse.json(
-        { error: 'ADMIN_TOKEN not configured' },
-        { status: 500 }
-      )
-    }
-
-    if (!authHeader || authHeader !== `Bearer ${adminToken}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
     // Targets 개수
     const targetsCount = await prisma.target.count()
 

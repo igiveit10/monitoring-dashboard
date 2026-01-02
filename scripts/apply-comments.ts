@@ -1,7 +1,7 @@
 /**
  * 코멘트 일괄 주입 스크립트
  * 
- * 목적: RunResult.myComment 필드에 코멘트를 일괄 주입
+ * 목적: Target.note 필드에 코멘트를 일괄 주입
  * 
  * 사용법:
  *   로컬: npx tsx scripts/apply-comments.ts
@@ -56,41 +56,21 @@ const COMMENT_MAPPING: Record<string, string> = {
   'd309147771': '다른논문, 고령 운전자를 위한 조건부 운전면허제도 개선방향 연구 - 한국ITS학회',
 }
 
-// 적용할 run_date (YYYY-MM-DD 형식)
-const TARGET_RUN_DATE = '2025-12-31'
-
 async function main() {
   console.log('[APPLY-COMMENTS] start')
   console.log(`[APPLY-COMMENTS] cwd=${process.cwd()}`)
   console.log(`[APPLY-COMMENTS] DATABASE_URL present=${!!process.env.DATABASE_URL}`)
-  console.log(`[APPLY-COMMENTS] Target run_date=${TARGET_RUN_DATE}`)
   console.log(`[APPLY-COMMENTS] Comment mappings=${Object.keys(COMMENT_MAPPING).length} entries`)
 
   const prisma = getPrisma()
 
   try {
-    // 날짜 정규화
-    const normalizedRunDate = normalizeRunDate(TARGET_RUN_DATE)
-    console.log(`[APPLY-COMMENTS] Normalized run_date=${normalizedRunDate}`)
-
-    // Run 조회
-    const run = await prisma.run.findUnique({
-      where: { runDate: normalizedRunDate },
-    })
-
-    if (!run) {
-      console.error(`[APPLY-COMMENTS] ERROR: Run not found for run_date=${normalizedRunDate}`)
-      console.error(`[APPLY-COMMENTS] Please ensure the run exists before applying comments.`)
-      process.exit(1)
-    }
-
-    console.log(`[APPLY-COMMENTS] Run found: id=${run.id}, runDate=${run.runDate}`)
 
     let updatedCount = 0
     let skippedCount = 0
     let notFoundCount = 0
 
-    // 각 코멘트 매핑에 대해 업데이트
+    // 각 코멘트 매핑에 대해 Target.note 업데이트
     for (const [targetId, comment] of Object.entries(COMMENT_MAPPING)) {
       try {
         // Target 존재 확인
@@ -104,22 +84,6 @@ async function main() {
           continue
         }
 
-        // RunResult 조회
-        const existingResult = await prisma.runResult.findUnique({
-          where: {
-            runId_targetId: {
-              runId: run.id,
-              targetId: target.id,
-            },
-          },
-        })
-
-        if (!existingResult) {
-          console.warn(`[APPLY-COMMENTS] RunResult not found: targetId=${targetId}, runDate=${normalizedRunDate}`)
-          skippedCount++
-          continue
-        }
-
         // 코멘트 업데이트 (빈 문자열이 아닌 경우에만)
         const trimmedComment = comment.trim()
         if (trimmedComment.length === 0) {
@@ -128,20 +92,16 @@ async function main() {
           continue
         }
 
-        await prisma.runResult.update({
-          where: {
-            runId_targetId: {
-              runId: run.id,
-              targetId: target.id,
-            },
-          },
+        // Target.note 업데이트
+        await prisma.target.update({
+          where: { id: targetId },
           data: {
-            myComment: trimmedComment,
+            note: trimmedComment,
           },
         })
 
         updatedCount++
-        console.log(`[APPLY-COMMENTS] Updated: targetId=${targetId}, comment="${trimmedComment.substring(0, 50)}${trimmedComment.length > 50 ? '...' : ''}"`)
+        console.log(`[APPLY-COMMENTS] Updated: targetId=${targetId}, note="${trimmedComment.substring(0, 50)}${trimmedComment.length > 50 ? '...' : ''}"`)
       } catch (error: any) {
         console.error(`[APPLY-COMMENTS] Error updating targetId=${targetId}:`, error.message)
         skippedCount++
@@ -156,44 +116,37 @@ async function main() {
 
     // 검증 SQL 출력
     console.log(`\n[APPLY-COMMENTS] === Verification SQL ===`)
-    console.log(`-- Check comments for run_date=${normalizedRunDate}:`)
-    console.log(`SELECT rr.id, rr."targetId", t.keyword, rr."myComment"`)
-    console.log(`FROM "RunResult" rr`)
-    console.log(`JOIN "Run" r ON rr."runId" = r.id`)
-    console.log(`JOIN "Target" t ON rr."targetId" = t.id`)
-    console.log(`WHERE r."runDate" = '${normalizedRunDate}'`)
-    console.log(`  AND rr."myComment" IS NOT NULL`)
-    console.log(`  AND rr."myComment" != ''`)
-    console.log(`ORDER BY t.keyword;`)
+    console.log(`-- Check notes for targets:`)
+    console.log(`SELECT id, keyword, note`)
+    console.log(`FROM "Target"`)
+    console.log(`WHERE id IN ('${Object.keys(COMMENT_MAPPING).join("','")}')`)
+    console.log(`  AND note IS NOT NULL`)
+    console.log(`  AND note != ''`)
+    console.log(`ORDER BY keyword;`)
 
     // 실제 검증 쿼리 실행
-    const verificationResults = await prisma.runResult.findMany({
+    const verificationResults = await prisma.target.findMany({
       where: {
-        runId: run.id,
-        myComment: {
+        id: { in: Object.keys(COMMENT_MAPPING) },
+        note: {
           not: null,
         },
       },
-      include: {
-        target: {
-          select: {
-            id: true,
-            keyword: true,
-          },
-        },
+      select: {
+        id: true,
+        keyword: true,
+        note: true,
       },
       orderBy: {
-        target: {
-          keyword: 'asc',
-        },
+        keyword: 'asc',
       },
     })
 
     console.log(`\n[APPLY-COMMENTS] === Verification Results ===`)
-    console.log(`[APPLY-COMMENTS] Total RunResults with comments: ${verificationResults.length}`)
-    verificationResults.forEach((result) => {
-      const commentPreview = result.myComment ? result.myComment.substring(0, 50) + (result.myComment.length > 50 ? '...' : '') : '(null)'
-      console.log(`[APPLY-COMMENTS]   - ${result.targetId}: "${commentPreview}"`)
+    console.log(`[APPLY-COMMENTS] Total Targets with notes: ${verificationResults.length}`)
+    verificationResults.forEach((target) => {
+      const notePreview = target.note ? target.note.substring(0, 50) + (target.note.length > 50 ? '...' : '') : '(null)'
+      console.log(`[APPLY-COMMENTS]   - ${target.id}: "${notePreview}"`)
     })
 
     console.log(`\n[APPLY-COMMENTS] completed successfully`)

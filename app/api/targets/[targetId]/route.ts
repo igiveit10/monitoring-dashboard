@@ -12,14 +12,14 @@ export async function PATCH(
   try {
     const targetId = params.targetId
     const body = await request.json()
-    const { myComment } = body
+    const { note } = body
 
     // 정답셋 값(currentStatus, csvPdfExposure)은 수정 불가
     // 비고만 수정 가능 (참고용 텍스트)
     const target = await prisma.target.update({
       where: { id: targetId },
       data: {
-        myComment: myComment !== undefined ? myComment : undefined,
+        note: note !== undefined ? note : undefined,
       },
     })
 

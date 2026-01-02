@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { runDate: rawRunDate, targetId, foundAcademicNaver, isPdf, comment } = body
+    const { runDate: rawRunDate, targetId, foundAcademicNaver, isPdf, note } = body
 
     if (!rawRunDate || !targetId) {
       console.error('[Monitoring API] Missing required fields:', { runDate: rawRunDate, targetId })
@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
         update: {
           foundAcademicNaver: foundAcademicNaver ?? false,
           isPdf: isPdf ?? false,
-          myComment: comment || null, // 모니터링 결과 코멘트 저장
           checkedAt: new Date(),
         },
         create: {
@@ -68,12 +67,20 @@ export async function POST(request: NextRequest) {
           targetId,
           foundAcademicNaver: foundAcademicNaver ?? false,
           isPdf: isPdf ?? false,
-          myComment: comment || null, // 모니터링 결과 코멘트 저장
         },
       })
 
       const action = existingResult ? 'updated' : 'created'
-      console.log(`[Monitoring API] RunResult ${action}: runId=${run.id}, targetId=${targetId}, foundAcademicNaver=${result.foundAcademicNaver}, isPdf=${result.isPdf}, myComment=${result.myComment || '(none)'}, resultId=${result.id}`)
+      console.log(`[Monitoring API] RunResult ${action}: runId=${run.id}, targetId=${targetId}, foundAcademicNaver=${result.foundAcademicNaver}, isPdf=${result.isPdf}, resultId=${result.id}`)
+      
+      // 비고(note)가 있으면 Target.note 업데이트
+      if (note !== undefined && note !== null) {
+        await prisma.target.update({
+          where: { id: targetId },
+          data: { note: note.trim() || null },
+        })
+        console.log(`[Monitoring API] Target.note updated: targetId=${targetId}, note=${note || '(empty)'}`)
+      }
     } catch (upsertError: any) {
       console.error(`[Monitoring API] Upsert error for runId=${run.id}, targetId=${targetId}:`, upsertError)
       console.error(`[Monitoring API] Error code: ${upsertError.code}, message: ${upsertError.message}`)

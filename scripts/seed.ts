@@ -56,7 +56,7 @@ async function main() {
     let keyword: string | undefined
     let url: string | undefined
     let currentStatus: string | null = null
-    let myComment: string | null = null
+    let note: string | null = null
     let csvId: string | undefined = undefined
     let csvPdfExposure: boolean | undefined = undefined
 
@@ -67,10 +67,10 @@ async function main() {
     keyword = record.keyword || record.title || undefined
 
     if (record.keyword && record.url) {
-      // 표준 형식: keyword,url,currentStatus,myComment
+      // 표준 형식: keyword,url,currentStatus,note
       url = record.url
       currentStatus = record.currentStatus || null
-      myComment = record.myComment || null
+      note = record.note || record.myComment || null
       csvPdfExposure = record.csvPdfExposure === 'Y' || record.csvPdfExposure === true
     } else if (record.title && record.통검url3) {
       // QA 형식: _id,title,통검url3,통검노출,PDF 노출,비고
@@ -81,12 +81,12 @@ async function main() {
         currentStatus = '미노출'
       }
       csvPdfExposure = record['PDF 노출'] === 'Y'
-      myComment = record.비고 || null
+      note = record.비고 || null
     } else if (keyword && record.url) {
       // keyword/title과 url이 있는 경우
       url = record.url
       currentStatus = record.currentStatus || null
-      myComment = record.myComment || null
+      note = record.note || record.myComment || null
       csvPdfExposure = record.csvPdfExposure === 'Y' || record.csvPdfExposure === true
     }
 
@@ -123,7 +123,7 @@ async function main() {
       
       if (currentStatus !== null) updateData.currentStatus = currentStatus
       if (csvPdfExposure !== undefined) updateData.csvPdfExposure = csvPdfExposure
-      if (myComment !== null) updateData.myComment = myComment
+      if (note !== null) updateData.note = note
       if (url && url !== existing.url) {
         const urlExists = await prisma.target.findUnique({
           where: { url },
@@ -148,7 +148,7 @@ async function main() {
             url,
             currentStatus,
             csvPdfExposure: csvPdfExposure ?? false,
-            myComment,
+            note,
           },
         })
         createdCount++
@@ -161,7 +161,7 @@ async function main() {
               url,
               currentStatus,
               csvPdfExposure: csvPdfExposure ?? false,
-              myComment,
+              note,
             },
           })
           createdCount++

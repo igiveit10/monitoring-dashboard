@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       let keyword: string | undefined
       let url: string | undefined
       let currentStatus: string | null = null
-      let myComment: string | null = null
+      let note: string | null = null
       let csvId: string | undefined = undefined
       let csvPdfExposure: boolean | undefined = undefined
 
@@ -55,10 +55,10 @@ export async function POST(request: NextRequest) {
       keyword = record.keyword || record.title || undefined
 
       if (record.keyword && record.url) {
-        // 표준 형식: keyword,url,currentStatus,myComment
+        // 표준 형식: keyword,url,currentStatus,note
         url = record.url
         currentStatus = record.currentStatus || null
-        myComment = record.myComment || null
+        note = record.note || record.myComment || null
       } else if (record.title && record.통검url3) {
         // QA 형식: _id,title,통검url3,통검노출,PDF 노출,비고
         url = record.통검url3
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         // PDF 노출은 별도 필드로 저장 (비고와 분리)
         csvPdfExposure = record['PDF 노출'] === 'Y'
         // 비고는 참고용 텍스트만 저장 (PDF 노출 정보 제외)
-        myComment = record.비고 || null
+        note = record.비고 || null
       } else if (csvId && keyword && !url) {
         // 간단 형식: id,title (title로 매핑)
         // URL이 없으면 title로 기존 레코드를 찾아서 업데이트만 수행
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         // keyword/title과 url이 있는 경우
         url = record.url
         currentStatus = record.currentStatus || null
-        myComment = record.myComment || null
+        note = record.note || record.myComment || null
       }
 
       // keyword/title이 없으면 스킵
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         // 정답셋 값은 CSV에서 제공된 경우에만 업데이트
         if (currentStatus !== null) updateData.currentStatus = currentStatus
         if (csvPdfExposure !== undefined) updateData.csvPdfExposure = csvPdfExposure
-        if (myComment !== null) updateData.myComment = myComment
+        if (note !== null) updateData.note = note
         
         // URL은 제공된 경우에만 업데이트 (간단 형식에서는 URL 없음)
         if (url && url !== existing.url) {
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
               url,
               currentStatus,
               csvPdfExposure,
-              myComment,
+              note,
             },
           })
         } catch (error: any) {
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
                 url,
                 currentStatus,
                 csvPdfExposure,
-                myComment,
+                note,
               },
             })
           } else {

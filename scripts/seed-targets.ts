@@ -150,7 +150,7 @@ async function main() {
       const answerPdfExposed = trimRecord.answer_pdf_exposed?.toUpperCase()
       const csvPdfExposure = answerPdfExposed === 'Y'
 
-      // note -> myComment (CSV에 note가 있으면 사용, 없으면 null)
+      // note 필드 (CSV에 note가 있으면 사용, 없으면 null)
       // 단, 업데이트 시에는 CSV의 note가 비어있으면 기존 값을 보존
       const csvNote = trimRecord.note?.trim() || null
 
@@ -182,7 +182,7 @@ async function main() {
               url,
               currentStatus,
               csvPdfExposure,
-              myComment: csvNote,
+              note: csvNote,
             },
           })
           createdCount++
@@ -197,7 +197,7 @@ async function main() {
         }
       } else if (existing) {
         // 일반 모드에서 기존 레코드가 있으면 업데이트
-        // CSV의 note가 비어있으면 기존 myComment를 보존
+        // CSV의 note가 비어있으면 기존 note를 보존
         const updateData: any = {
           keyword,
           url,
@@ -207,9 +207,9 @@ async function main() {
         
         // CSV에 note가 있으면 업데이트, 없으면 기존 값 유지
         if (csvNote !== null) {
-          updateData.myComment = csvNote
+          updateData.note = csvNote
         }
-        // csvNote가 null이면 updateData에 myComment를 포함하지 않아 기존 값이 유지됨
+        // csvNote가 null이면 updateData에 note를 포함하지 않아 기존 값이 유지됨
         
         try {
           await prisma.target.update({
@@ -231,7 +231,7 @@ async function main() {
               url,
               currentStatus,
               csvPdfExposure,
-              myComment: csvNote,
+              note: csvNote,
             },
           })
           createdCount++

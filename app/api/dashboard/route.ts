@@ -100,7 +100,6 @@ export async function GET(request: NextRequest) {
             targetId: true,
             foundAcademicNaver: true,
             isPdf: true,
-            myComment: true, // myComment 필드 명시적으로 포함
             httpStatus: true,
             finalUrl: true,
             checkedAt: true,
@@ -307,7 +306,7 @@ export async function GET(request: NextRequest) {
             targetId: target.id,
             keyword: target.keyword || '',
             url: target.url || '',
-            myComment: target.myComment || '',
+            note: target.note || '',
             diffs: changes,
           })
         }
@@ -369,7 +368,7 @@ export async function GET(request: NextRequest) {
           targetId,
           keyword: target?.keyword || '',
           url: target?.url || '',
-          myComment: target?.myComment || '',
+            note: target?.note || '',
           diffs: changes,
         })
       }
@@ -390,17 +389,12 @@ export async function GET(request: NextRequest) {
       
       if (result) {
         // Run 결과가 있는 경우
-        // 비고 우선순위: RunResult.myComment > Target.myComment
-        const displayComment = result.myComment && result.myComment.trim().length > 0 
-          ? result.myComment 
-          : (target.myComment && target.myComment.trim().length > 0 ? target.myComment : null)
-        
         return {
           id: target.id,
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          myComment: displayComment, // 비고: RunResult.myComment 우선, 없으면 Target.myComment
+          note: target.note && target.note.trim().length > 0 ? target.note : null, // 타겟별 비고 (날짜별 아님)
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: result.foundAcademicNaver,
@@ -417,7 +411,7 @@ export async function GET(request: NextRequest) {
           keyword: target.keyword,
           url: target.url,
           currentStatus: target.currentStatus,
-          myComment: target.myComment && target.myComment.trim().length > 0 ? target.myComment : null, // null로 반환하여 프론트에서 '-' 표시
+          note: target.note && target.note.trim().length > 0 ? target.note : null, // 타겟별 비고
           csv통검노출,
           csvPdf노출,
           foundAcademicNaver: false,
@@ -478,7 +472,6 @@ export async function GET(request: NextRequest) {
         runDate: normalizeRunDate(r.runDate), // 날짜 정규화하여 반환
         results: r.results.map((res) => ({
           ...res,
-          myComment: res.myComment || null, // myComment 필드 명시적으로 포함
         })),
       })),
     })

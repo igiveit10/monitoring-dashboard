@@ -35,24 +35,6 @@ const getPrisma = () => {
 }
 
 export async function POST(request: NextRequest) {
-  // 인증 확인
-  const authHeader = request.headers.get('authorization')
-  const adminToken = process.env.ADMIN_TOKEN
-  
-  if (!adminToken) {
-    return NextResponse.json(
-      { error: 'ADMIN_TOKEN이 설정되지 않았습니다' },
-      { status: 500 }
-    )
-  }
-
-  if (!authHeader || authHeader !== `Bearer ${adminToken}`) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
-  }
-
   const prisma = getPrisma()
 
   try {
@@ -107,7 +89,7 @@ export async function POST(request: NextRequest) {
       let keyword: string | undefined
       let url: string | undefined
       let currentStatus: string | null = null
-      let myComment: string | null = null
+      let note: string | null = null
       let csvId: string | undefined = undefined
       let csvPdfExposure: boolean | undefined = undefined
 
@@ -117,7 +99,7 @@ export async function POST(request: NextRequest) {
       if (record.keyword && record.url) {
         url = record.url
         currentStatus = record.currentStatus || null
-        myComment = record.myComment || null
+        note = record.note || record.myComment || null
         csvPdfExposure = record.csvPdfExposure === 'Y' || record.csvPdfExposure === true
       } else if (record.title && record.통검url3) {
         url = record.통검url3
@@ -127,11 +109,11 @@ export async function POST(request: NextRequest) {
           currentStatus = '미노출'
         }
         csvPdfExposure = record['PDF 노출'] === 'Y'
-        myComment = record.비고 || null
+        note = record.비고 || null
       } else if (keyword && record.url) {
         url = record.url
         currentStatus = record.currentStatus || null
-        myComment = record.myComment || null
+        note = record.note || record.myComment || null
         csvPdfExposure = record.csvPdfExposure === 'Y' || record.csvPdfExposure === true
       }
 
@@ -166,7 +148,7 @@ export async function POST(request: NextRequest) {
         
         if (currentStatus !== null) updateData.currentStatus = currentStatus
         if (csvPdfExposure !== undefined) updateData.csvPdfExposure = csvPdfExposure
-        if (myComment !== null) updateData.myComment = myComment
+        if (note !== null) updateData.note = note
         if (url && url !== existing.url) {
           const urlExists = await prisma.target.findUnique({
             where: { url },
@@ -190,7 +172,7 @@ export async function POST(request: NextRequest) {
               url,
               currentStatus,
               csvPdfExposure: csvPdfExposure ?? false,
-              myComment,
+              note,
             },
           })
           createdCount++
@@ -202,7 +184,7 @@ export async function POST(request: NextRequest) {
                 url,
                 currentStatus,
                 csvPdfExposure: csvPdfExposure ?? false,
-                myComment,
+                note,
               },
             })
             createdCount++

@@ -153,8 +153,7 @@ async function main() {
     let resultCreatedCount = 0
     let resultUpdatedCount = 0
     let skippedCount = 0
-    let commentUpdatedCount = 0
-    let commentSkippedEmptyCount = 0
+    let noteUpdatedCount = 0
 
     // 각 runDate별로 처리
     for (const [runDate, records] of Array.from(runsByDate.entries())) {
@@ -215,11 +214,41 @@ async function main() {
         // RunResult upsert (target_id, run_date를 유니크 키로 사용)
         const foundAcademicNaver = foundAcademic === 'Y'
         const isPdf = foundPdf === 'Y'
-        // myComment 필드 추출 (CSV에서 읽은 값, trim 후 비어있으면 null)
-        const csvComment = record.comment?.trim() || ''
-        const hasComment = csvComment.length > 0
+        // note 필드 추출 (CSV에서 읽은 값, trim 후 비어있으면 null)
+        const csvNote = record.comment?.trim() || ''
+        const hasNote = csvNote.length > 0
 
         try {
+          await prisma.runResult.upsert({
+            where: {
+              runId_targetId: {
+                runId: run.id,
+                targetId: target.id,
+              },
+            },
+            update: {
+              foundAcademicNaver,
+              isPdf,
+              checkedAt: new Date(),
+            },
+            create: {
+              runId: run.id,
+              targetId: target.id,
+              foundAcademicNaver,
+              isPdf,
+            },
+          })
+          
+          // CSV에 note가 있으면 Target.note 업데이트
+          if (hasNote) {
+            await prisma.target.update({
+              where: { id: target.id },
+              data: { note: csvNote },
+            })
+            noteUpdatedCount++
+          }
+          
+          // 결과 통계
           const existingResult = await prisma.runResult.findUnique({
             where: {
               runId_targetId: {
@@ -228,55 +257,11 @@ async function main() {
               },
             },
           })
-
-          // update/create 객체를 동적으로 구성
-          // CSV comment가 비어있으면 myComment 필드를 포함하지 않아 기존 값 보존
-          const updateData: any = {
-            foundAcademicNaver,
-            isPdf,
-            checkedAt: new Date(),
-          }
-          if (hasComment) {
-            updateData.myComment = csvComment
-          }
-
-          const createData: any = {
-            runId: run.id,
-            targetId: target.id,
-            foundAcademicNaver,
-            isPdf,
-          }
-          if (hasComment) {
-            createData.myComment = csvComment
-          }
-
-          await prisma.runResult.upsert({
-            where: {
-              runId_targetId: {
-                runId: run.id,
-                targetId: target.id,
-              },
-            },
-            update: updateData,
-            create: createData,
-          })
           
-          // comment 업데이트 통계
           if (existingResult) {
             resultUpdatedCount++
-            if (hasComment) {
-              // CSV에 comment가 있어서 업데이트한 경우
-              commentUpdatedCount++
-            } else if (existingResult.myComment && existingResult.myComment.trim().length > 0) {
-              // CSV에 comment가 없어서 기존 DB myComment를 보존한 경우
-              commentSkippedEmptyCount++
-            }
           } else {
             resultCreatedCount++
-            if (hasComment) {
-              // 새로 생성하면서 CSV comment를 포함한 경우
-              commentUpdatedCount++
-            }
           }
         } catch (error: any) {
           console.error(`[SEED-RUNS] Error upserting result for ${targetId} on ${runDate}:`, error.message)
@@ -294,8 +279,7 @@ async function main() {
     console.log(`[SEED-RUNS] rows=${records.length}, inserted=${insertedCount}, updated=${updatedCount}, skipped=${skippedCount}`)
     console.log(`[SEED-RUNS] runs created=${runCreatedCount}, updated=${runUpdatedCount}`)
     console.log(`[SEED-RUNS] results created=${resultCreatedCount}, updated=${resultUpdatedCount}`)
-    console.log(`[SEED-RUNS] commentUpdatedCount=${commentUpdatedCount}`)
-    console.log(`[SEED-RUNS] commentSkippedEmptyCount=${commentSkippedEmptyCount}`)
+    console.log(`[SEED-RUNS] noteUpdatedCount=${noteUpdatedCount}`)
     console.log(`[SEED-RUNS] total runs in DB=${totalRuns}, total results=${totalResults}`)
     console.log(`[SEED-RUNS] completed successfully`)
   } catch (error) {

@@ -44,7 +44,7 @@ interface DashboardData {
     targetId: string
     keyword: string
     url: string
-    myComment?: string | null
+    note?: string | null
     diffs: Array<{
       field: string
       oldValue: any
@@ -55,7 +55,7 @@ interface DashboardData {
     targetId: string
     keyword: string
     url: string
-    myComment?: string | null
+    note?: string | null
     diffs: Array<{
       field: string
       oldValue: any
@@ -67,7 +67,7 @@ interface DashboardData {
     keyword: string
     url: string
     currentStatus: string | null
-    myComment: string | null
+    note: string | null
     csv통검노출: string | null
     csvPdf노출: string
     foundAcademicNaver: boolean
@@ -103,7 +103,7 @@ export default function Dashboard() {
   const [isMonitoringModalOpen, setIsMonitoringModalOpen] = useState(false)
   const [monitoringModalDate, setMonitoringModalDate] = useState<string>('')
   const [monitoringData, setMonitoringData] = useState<
-    Record<string, { 통검노출: string; pdf노출: string; 비고: string; 완료: boolean }>
+    Record<string, { 통검노출: string; pdf노출: string; 완료: boolean }>
   >({})
 
   // localStorage에서 모니터링 데이터 복원
@@ -151,7 +151,7 @@ export default function Dashboard() {
     url: 350,
     csv통검노출: 100,
     csvPdf노출: 100,
-    myComment: 150,
+    note: 150,
     check: 80,
   })
   const [resizingColumn, setResizingColumn] = useState<string | null>(null)
@@ -335,7 +335,7 @@ export default function Dashboard() {
     else if (sortBy === 'csvPdf노출') comparison = (a.csvPdf노출 || '').localeCompare(b.csvPdf노출 || '')
     else if (sortBy === 'foundAcademicNaver') comparison = (a.foundAcademicNaver ? 1 : 0) - (b.foundAcademicNaver ? 1 : 0)
     else if (sortBy === 'isPdf') comparison = (a.isPdf ? 1 : 0) - (b.isPdf ? 1 : 0)
-    else if (sortBy === 'myComment') comparison = (a.myComment || '').localeCompare(b.myComment || '')
+    else if (sortBy === 'note') comparison = (a.note || '').localeCompare(b.note || '')
     else if (sortBy === 'httpStatus') comparison = (a.httpStatus ?? 0) - (b.httpStatus ?? 0)
     else if (sortBy === 'finalUrl') comparison = (a.finalUrl || '').localeCompare(b.finalUrl || '')
     else if (sortBy === 'checkedAt') {
@@ -404,7 +404,7 @@ export default function Dashboard() {
         url: row.url,
         '정답셋 통검노출': row.csv통검노출 || '-',
         '정답셋 PDF노출': row.csvPdf노출 || 'N',
-        '정답셋 비고': row.myComment || '',
+        '정답셋 비고': row.note || '',
       }
 
       // 각 Run 날짜별 모니터링 결과 추가 (최종URL, 에러, HTTP상태 제외)
@@ -676,8 +676,8 @@ export default function Dashboard() {
                                       {diff.keyword} - {diff.url}
                                     </div>
 
-                                    {diff.myComment && (
-                                      <div className="text-xs text-gray-600 mb-2 italic">비고: {diff.myComment}</div>
+                                    {diff.note && (
+                                      <div className="text-xs text-gray-600 mb-2 italic">비고: {diff.note}</div>
                                     )}
 
                                     <div className="space-y-1 text-sm">
@@ -713,8 +713,8 @@ export default function Dashboard() {
                           {diff.keyword} - {diff.url}
                         </div>
 
-                        {diff.myComment && (
-                          <div className="text-xs text-gray-600 mb-2 italic">비고: {diff.myComment}</div>
+                        {diff.note && (
+                          <div className="text-xs text-gray-600 mb-2 italic">비고: {diff.note}</div>
                         )}
 
                         <div className="space-y-1 text-sm">
@@ -756,7 +756,7 @@ export default function Dashboard() {
                       const today = new Date().toISOString().split('T')[0]
                       setMonitoringModalDate(today)
 
-                      const initialData: Record<string, { 통검노출: string; pdf노출: string; 비고: string; 완료: boolean }> = {}
+                      const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean }> = {}
                       dashboardData.tableData.forEach((row) => {
                         // 가장 최근 Run의 결과 찾기
                         const sortedRuns = [...(dashboardData.allRuns || [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
@@ -775,7 +775,6 @@ export default function Dashboard() {
                         initialData[row.id] = {
                           통검노출: latest통검노출,
                           pdf노출: latestPdf노출,
-                          비고: row.myComment || '',
                           완료: false,
                         }
                       })
@@ -875,11 +874,11 @@ export default function Dashboard() {
                         </th>
                         <th
                           className="text-left p-2 text-sm font-medium cursor-pointer hover:bg-gray-100 select-none relative border-r"
-                          onClick={() => handleSort('myComment')}
+                          onClick={() => handleSort('note')}
                         >
                           <div className="flex items-center">
                             비고
-                            {getSortIcon('myComment')}
+                            {getSortIcon('note')}
                           </div>
                         </th>
 
@@ -908,7 +907,7 @@ export default function Dashboard() {
                                     }
                                   }
 
-                                  const initialData: Record<string, { 통검노출: string; pdf노출: string; 비고: string; 완료: boolean }> = {}
+                                  const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean }> = {}
                                   dashboardData.tableData.forEach((row) => {
                                     // 해당 Run의 결과를 먼저 확인
                                     const runResult = run.results.find((r) => r.targetId === row.id)
@@ -932,7 +931,6 @@ export default function Dashboard() {
                                     initialData[row.id] = {
                                       통검노출: latest통검노출,
                                       pdf노출: latestPdf노출,
-                                      비고: row.myComment || '',
                                       완료: false,
                                     }
                                   })
@@ -1008,15 +1006,14 @@ export default function Dashboard() {
                               {row.csvPdf노출 === 'Y' ? <span className="text-green-600 font-bold">Y</span> : <span className="text-red-600 font-bold">N</span>}
                             </td>
 
-                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title={row.myComment || ''}>
-                              {row.myComment && row.myComment.trim().length > 0 ? row.myComment : '-'}
+                            <td className="p-2 text-sm border-r overflow-hidden text-ellipsis" title={row.note || ''}>
+                              {row.note && row.note.trim().length > 0 ? row.note : '-'}
                             </td>
 
                             {(dashboardData?.allRuns ?? []).map((run) => {
                               const result = runResultsMap.get(run.runDate)
                               const 모니터링통검노출 = result?.foundAcademicNaver ?? false
                               const 모니터링Pdf노출 = result?.isPdf ?? false
-                              const comment = result?.myComment || null
 
                               const 통검일치 =
                                 (row.csv통검노출 === 'Y' && 모니터링통검노출) ||
@@ -1029,21 +1026,14 @@ export default function Dashboard() {
                               return (
                                 <td key={run.runDate} className="p-2 text-sm text-center border-r">
                                   {result ? (
-                                    <div className="flex flex-col gap-1">
-                                      <div
-                                        className={`flex gap-1 items-center justify-center ${
-                                          모두일치 ? 'text-green-600' : 'text-yellow-600'
-                                        }`}
-                                      >
-                                        <span className="font-bold">{모니터링통검노출 ? 'Y' : 'N'}</span>
-                                        <span>/</span>
-                                        <span className="font-bold">{모니터링Pdf노출 ? 'Y' : 'N'}</span>
-                                      </div>
-                                      {comment && (
-                                        <div className="text-xs text-gray-500 mt-0.5 truncate" title={comment}>
-                                          {comment}
-                                        </div>
-                                      )}
+                                    <div
+                                      className={`flex gap-1 items-center justify-center ${
+                                        모두일치 ? 'text-green-600' : 'text-yellow-600'
+                                      }`}
+                                    >
+                                      <span className="font-bold">{모니터링통검노출 ? 'Y' : 'N'}</span>
+                                      <span>/</span>
+                                      <span className="font-bold">{모니터링Pdf노출 ? 'Y' : 'N'}</span>
                                     </div>
                                   ) : (
                                     <span className="text-gray-400 text-xs">-</span>
@@ -1092,7 +1082,7 @@ export default function Dashboard() {
                       }
                     }
 
-                    const initialData: Record<string, { 통검노출: string; pdf노출: string; 비고: string; 완료: boolean }> = {}
+                    const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean }> = {}
                     dashboardData.tableData.forEach((row) => {
                       // 가장 최근 Run의 결과 찾기
                       const sortedRuns = [...(dashboardData.allRuns || [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
@@ -1111,7 +1101,6 @@ export default function Dashboard() {
                       initialData[row.id] = {
                         통검노출: latest통검노출,
                         pdf노출: latestPdf노출,
-                        비고: row.myComment || '',
                         완료: false,
                       }
                     })
@@ -1130,7 +1119,7 @@ export default function Dashboard() {
                       
                       const promises = Object.entries(monitoringData).map(async ([targetId, data]) => {
                         try {
-                          console.log(`[Frontend] Saving target ${targetId}: 통검=${data.통검노출}, PDF=${data.pdf노출}, 비고=${data.비고}`)
+                          console.log(`[Frontend] Saving target ${targetId}: 통검=${data.통검노출}, PDF=${data.pdf노출}`)
                           
                           const response = await fetch('/api/monitoring', {
                             method: 'POST',
@@ -1140,7 +1129,6 @@ export default function Dashboard() {
                               targetId,
                               foundAcademicNaver: data.통검노출 === 'Y',
                               isPdf: data.pdf노출 === 'Y',
-                              myComment: data.비고 || null, // 비고도 함께 전달
                             }),
                           })
 
@@ -1281,7 +1269,7 @@ export default function Dashboard() {
                       모니터링 PDF
                     </th>
                     <th className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring비고 }}>
-                      완료 / 모니터링 비고
+                      완료
                     </th>
                   </tr>
                 </thead>
@@ -1320,7 +1308,6 @@ export default function Dashboard() {
                         monitoringData[row.id] || {
                           통검노출: latest통검노출,
                           pdf노출: latestPdf노출,
-                          비고: row.myComment || '',
                           완료: false,
                         }
 
@@ -1374,9 +1361,9 @@ export default function Dashboard() {
                         <td
                           className="border p-2 overflow-hidden text-ellipsis"
                           style={{ width: monitoringColumnWidths.csv비고 }}
-                          title={row.myComment || ''}
+                          title={row.note || ''}
                         >
-                          {row.myComment || '-'}
+                          {row.note || '-'}
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>
@@ -1411,35 +1398,20 @@ export default function Dashboard() {
                           </select>
                         </td>
 
-                        <td className="border p-2" style={{ width: monitoringColumnWidths.monitoring비고 }}>
-                          <div className="flex gap-2 items-center">
-                            <Button
-                              size="sm"
-                              variant={data.완료 ? 'default' : 'outline'}
-                              onClick={() => {
-                                setMonitoringData({
-                                  ...monitoringData,
-                                  [row.id]: { ...data, 완료: !data.완료 },
-                                })
-                              }}
-                              className={data.완료 ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-                            >
-                              {data.완료 ? '✓ 완료' : '완료'}
-                            </Button>
-
-                            <input
-                              type="text"
-                              value={data.비고}
-                              onChange={(e) => {
-                                setMonitoringData({
-                                  ...monitoringData,
-                                  [row.id]: { ...data, 비고: e.target.value },
-                                })
-                              }}
-                              className="flex-1 px-2 py-1 text-sm border rounded"
-                              placeholder="비고 입력"
-                            />
-                          </div>
+                        <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring비고 }}>
+                          <Button
+                            size="sm"
+                            variant={data.완료 ? 'default' : 'outline'}
+                            onClick={() => {
+                              setMonitoringData({
+                                ...monitoringData,
+                                [row.id]: { ...data, 완료: !data.완료 },
+                              })
+                            }}
+                            className={data.완료 ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                          >
+                            {data.완료 ? '✓ 완료' : '완료'}
+                          </Button>
                         </td>
                       </tr>
                     )
