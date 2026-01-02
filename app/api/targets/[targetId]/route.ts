@@ -18,6 +18,16 @@ export async function PATCH(
     // 정답셋 값(currentStatus, csvPdfExposure)은 수정 불가
     const target = await prisma.target.findUnique({
       where: { id: targetId },
+      select: {
+        id: true,
+        keyword: true,
+        url: true,
+        currentStatus: true,
+        csvPdfExposure: true,
+        createdAt: true,
+        updatedAt: true,
+        // note 필드 제외 (DB에 컬럼 없음)
+      },
     })
     
     if (!target) {

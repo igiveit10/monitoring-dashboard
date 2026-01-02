@@ -57,7 +57,18 @@ export async function GET(request: NextRequest) {
         include: {
           results: {
             include: {
-              target: true,
+              target: {
+                select: {
+                  id: true,
+                  keyword: true,
+                  url: true,
+                  currentStatus: true,
+                  csvPdfExposure: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  // note 필드 제외 (DB에 컬럼 없음)
+                },
+              },
             },
           },
         },
@@ -76,7 +87,18 @@ export async function GET(request: NextRequest) {
         include: {
           results: {
             include: {
-              target: true,
+              target: {
+                select: {
+                  id: true,
+                  keyword: true,
+                  url: true,
+                  currentStatus: true,
+                  csvPdfExposure: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  // note 필드 제외 (DB에 컬럼 없음)
+                },
+              },
             },
           },
         },
@@ -154,7 +176,18 @@ export async function GET(request: NextRequest) {
 
     // 테이블 데이터 준비 및 정답셋(CSV 원본) 기준 KPI 계산
     // Run 결과가 있는 targets와 없는 targets 모두 포함
-    const allTargetsRaw = await prisma.target.findMany()
+    const allTargetsRaw = await prisma.target.findMany({
+      select: {
+        id: true,
+        keyword: true,
+        url: true,
+        currentStatus: true,
+        csvPdfExposure: true,
+        createdAt: true,
+        updatedAt: true,
+        // note 필드 제외 (DB에 컬럼 없음)
+      },
+    })
     // 정답셋 기준으로 정렬: YY > YN > NY > NN
     const allTargets = sortTargetsByAnswerSet(allTargetsRaw)
     console.log(`[Dashboard API] Fetched ${allTargets.length} targets from DB (sorted by answer set)`)

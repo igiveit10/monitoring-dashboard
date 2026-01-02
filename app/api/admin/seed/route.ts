@@ -128,6 +128,16 @@ export async function POST(request: NextRequest) {
         try {
           existing = await prisma.target.findUnique({
             where: { id: csvId },
+            select: {
+              id: true,
+              keyword: true,
+              url: true,
+              currentStatus: true,
+              csvPdfExposure: true,
+              createdAt: true,
+              updatedAt: true,
+              // note 필드 제외 (DB에 컬럼 없음)
+            },
           })
         } catch (e) {
           // ID 형식이 잘못된 경우 무시
@@ -137,6 +147,16 @@ export async function POST(request: NextRequest) {
       if (!existing && url) {
         existing = await prisma.target.findUnique({
           where: { url },
+          select: {
+            id: true,
+            keyword: true,
+            url: true,
+            currentStatus: true,
+            csvPdfExposure: true,
+            createdAt: true,
+            updatedAt: true,
+            // note 필드 제외 (DB에 컬럼 없음)
+          },
         })
       }
 
@@ -152,6 +172,10 @@ export async function POST(request: NextRequest) {
         if (url && url !== existing.url) {
           const urlExists = await prisma.target.findUnique({
             where: { url },
+            select: {
+              id: true,
+              // 존재 확인용이므로 id만 선택
+            },
           })
           if (!urlExists) {
             updateData.url = url

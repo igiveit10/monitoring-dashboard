@@ -102,6 +102,16 @@ export async function POST(request: NextRequest) {
         try {
           existing = await prisma.target.findUnique({
             where: { id: csvId },
+            select: {
+              id: true,
+              keyword: true,
+              url: true,
+              currentStatus: true,
+              csvPdfExposure: true,
+              createdAt: true,
+              updatedAt: true,
+              // note 필드 제외 (DB에 컬럼 없음)
+            },
           })
         } catch (e) {
           // ID 형식이 잘못된 경우 무시
@@ -112,6 +122,16 @@ export async function POST(request: NextRequest) {
         // ID로 못 찾았고 URL이 있으면 URL로 찾기
         existing = await prisma.target.findUnique({
           where: { url },
+          select: {
+            id: true,
+            keyword: true,
+            url: true,
+            currentStatus: true,
+            csvPdfExposure: true,
+            createdAt: true,
+            updatedAt: true,
+            // note 필드 제외 (DB에 컬럼 없음)
+          },
         })
       }
 
@@ -119,6 +139,16 @@ export async function POST(request: NextRequest) {
         // ID도 URL도 없고 keyword만 있으면 keyword로 찾기 (title 매핑)
         existing = await prisma.target.findFirst({
           where: { keyword },
+          select: {
+            id: true,
+            keyword: true,
+            url: true,
+            currentStatus: true,
+            csvPdfExposure: true,
+            createdAt: true,
+            updatedAt: true,
+            // note 필드 제외 (DB에 컬럼 없음)
+          },
         })
       }
 
@@ -139,6 +169,10 @@ export async function POST(request: NextRequest) {
           // URL이 변경되는 경우, 새 URL이 이미 존재하는지 확인
           const urlExists = await prisma.target.findUnique({
             where: { url },
+            select: {
+              id: true,
+              // 존재 확인용이므로 id만 선택
+            },
           })
           if (!urlExists) {
             updateData.url = url

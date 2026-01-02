@@ -26,7 +26,18 @@ export async function POST() {
     }
 
     // 모든 targets 가져오기
-    const targetsRaw = await prisma.target.findMany()
+    const targetsRaw = await prisma.target.findMany({
+      select: {
+        id: true,
+        keyword: true,
+        url: true,
+        currentStatus: true,
+        csvPdfExposure: true,
+        createdAt: true,
+        updatedAt: true,
+        // note 필드 제외 (DB에 컬럼 없음)
+      },
+    })
     // 정답셋 기준으로 정렬: YY > YN > NY > NN (모니터링 실행 순서)
     const targets = sortTargetsByAnswerSet(targetsRaw)
     console.log(`[Runs/Today API] Fetched ${targets.length} targets (sorted by answer set: YY > YN > NY > NN)`)
