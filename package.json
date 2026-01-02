@@ -8,18 +8,14 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npx tsx scripts/ensure-data-dirs.ts && npx next build",
-    "start": "npx tsx scripts/ensure-data-dirs.ts && (if [ \"$FORCE_SEED_RUNS\" = \"true\" ]; then npx tsx scripts/seed-runs.ts; fi) && npx next start -p $PORT",
+    "build": "prisma generate && next build",
+    "start": "prisma migrate deploy && next start -p $PORT",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push --accept-data-loss",
-    "db:push:force": "prisma db push --accept-data-loss",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "db:seed": "npx tsx scripts/seed.ts",
-    "import:qa": "npx tsx scripts/import-qa-data.ts",
-    "postinstall": "prisma generate",
-    "ensure-dirs": "npx tsx scripts/ensure-data-dirs.ts"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

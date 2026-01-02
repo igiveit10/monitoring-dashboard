@@ -12,11 +12,11 @@ datasource db {
 
 model Target {
   id             String      @id @default(cuid())
-  keyword        String
+  title          String
   url            String      @unique
-  currentStatus  String? // 정답셋 통검노출: "노출" 또는 "미노출"
-  csvPdfExposure Boolean     @default(false) // 정답셋 PDF 노출 (비고와 독립적)
-  note           String? // 타겟별 비고 텍스트 (날짜별이 아닌 타겟 고정)
+  expectedSearch Boolean     @default(false)
+  expectedPdf    Boolean     @default(false)
+  note           String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   runResults     RunResult[]
@@ -24,38 +24,18 @@ model Target {
   @@index([url])
 }
 
-model Run {
-  id        String      @id @default(cuid())
-  runDate   String      @unique // YYYY-MM-DD format
-  createdAt DateTime    @default(now())
-  results   RunResult[]
-}
-
 model RunResult {
-  id                 String   @id @default(cuid())
-  runId              String
-  targetId           String
-  foundAcademicNaver Boolean  @default(false)
-  isPdf              Boolean  @default(false)
-  httpStatus         Int?
-  finalUrl           String?
-  checkedAt          DateTime @default(now())
-  errorMessage       String?
-  rawEvidencePath    String?
-  myComment          String?  // 날짜별 비고 (임시로 RunResult에 저장)
+  id          String   @id @default(uuid())
+  runDate     DateTime @db.Date
+  targetId    String
+  foundSearch Boolean  @default(false)
+  foundPdf    Boolean  @default(false)
+  isDone      Boolean  @default(false)
+  checkedAt   DateTime @default(now())
 
-  run    Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
   target Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
 
-  @@unique([runId, targetId])
-  @@index([runId])
+  @@unique([runDate, targetId])
+  @@index([runDate])
   @@index([targetId])
-}
-
-model UploadHistory {
-  id          String   @id @default(cuid())
-  fileName    String
-  filePath    String
-  recordCount Int
-  uploadedAt  DateTime @default(now())
 }
