@@ -1433,7 +1433,7 @@ export default function Dashboard() {
                         <td className="border p-2" style={{ width: monitoringColumnWidths.csv비고 }}>
                           <input
                             type="text"
-                            value={data.비고 ?? row.myComment ?? ''}
+                            value={monitoringData[row.id]?.비고 !== undefined ? monitoringData[row.id].비고 : (row.myComment ?? '')}
                             onChange={(e) => {
                               setMonitoringData({
                                 ...monitoringData,
