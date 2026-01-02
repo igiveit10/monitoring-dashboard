@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: url-monitoring-dashboard
+    env: node
+    buildCommand: npm install && npm run db:generate && npx prisma db push --accept-data-loss && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+    disk:
+      name: data-disk
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
+
