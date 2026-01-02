@@ -104,7 +104,7 @@ export default function Dashboard() {
   const [isMonitoringModalOpen, setIsMonitoringModalOpen] = useState(false)
   const [monitoringModalDate, setMonitoringModalDate] = useState<string>('')
   const [monitoringData, setMonitoringData] = useState<
-    Record<string, { 통검노출: string; pdf노출: string; 완료: boolean }>
+    Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }>
   >({})
 
   // localStorage에서 모니터링 데이터 복원
@@ -114,7 +114,12 @@ export default function Dashboard() {
       if (saved && monitoringModalDate) {
         try {
           const parsed = JSON.parse(saved)
-          setMonitoringData(parsed)
+          // 기존 데이터에 비고 필드가 없으면 추가
+          const parsedWith비고 = Object.keys(parsed).reduce((acc, key) => {
+            acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '' }
+            return acc
+          }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }>)
+          setMonitoringData(parsedWith비고)
         } catch (e) {
           console.error('Failed to parse saved monitoring data', e)
         }
@@ -765,12 +770,16 @@ export default function Dashboard() {
                       const today = new Date().toISOString().split('T')[0]
                       setMonitoringModalDate(today)
 
-                      const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean }> = {}
+                      const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }> = {}
                       dashboardData.tableData.forEach((row) => {
                         // 가장 최근 Run의 결과 찾기
                         const sortedRuns = [...(dashboardData.allRuns || [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
                         let latest통검노출 = row.csv통검노출 || 'N'
                         let latestPdf노출 = row.csvPdf노출 || 'N'
+                        
+                        // 현재 선택한 날짜의 myComment 찾기
+                        const currentRun = dashboardData.allRuns.find((r) => r.runDate === today)
+                        const currentComment = currentRun?.results.find((r) => r.targetId === row.id)?.myComment || ''
                         
                         for (const run of sortedRuns) {
                           const result = run.results.find((r) => r.targetId === row.id)
@@ -785,6 +794,7 @@ export default function Dashboard() {
                           통검노출: latest통검노출,
                           pdf노출: latestPdf노출,
                           완료: false,
+                          비고: currentComment || '',
                         }
                       })
                       setMonitoringData(initialData)
@@ -907,7 +917,12 @@ export default function Dashboard() {
                                     if (saved) {
                                       try {
                                         const parsed = JSON.parse(saved)
-                                        setMonitoringData(parsed)
+                                        // 기존 데이터에 비고 필드가 없으면 추가
+                                        const parsedWith비고 = Object.keys(parsed).reduce((acc, key) => {
+                                          acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '' }
+                                          return acc
+                                        }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }>)
+                                        setMonitoringData(parsedWith비고)
                                         setIsMonitoringModalOpen(true)
                                         return
                                       } catch (e) {
@@ -916,7 +931,7 @@ export default function Dashboard() {
                                     }
                                   }
 
-                                  const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean }> = {}
+                                  const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }> = {}
                                   dashboardData.tableData.forEach((row) => {
                                     // 해당 Run의 결과를 먼저 확인
                                     const runResult = run.results.find((r) => r.targetId === row.id)
@@ -924,6 +939,9 @@ export default function Dashboard() {
                                     // 해당 Run에 결과가 없으면 가장 최근 Run의 결과 찾기
                                     let latest통검노출 = runResult?.foundAcademicNaver ? 'Y' : (row.csv통검노출 || 'N')
                                     let latestPdf노출 = runResult?.isPdf ? 'Y' : (row.csvPdf노출 || 'N')
+                                    
+                                    // 현재 선택한 날짜의 myComment 찾기
+                                    const currentComment = runResult?.myComment || ''
                                     
                                     if (!runResult) {
                                       const sortedRuns = [...(dashboardData.allRuns || [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
@@ -941,6 +959,7 @@ export default function Dashboard() {
                                       통검노출: latest통검노출,
                                       pdf노출: latestPdf노출,
                                       완료: false,
+                                      비고: currentComment || '',
                                     }
                                   })
                                   setMonitoringData(initialData)
@@ -1111,7 +1130,12 @@ export default function Dashboard() {
                       if (saved) {
                         try {
                           const parsed = JSON.parse(saved)
-                          setMonitoringData(parsed)
+                          // 기존 데이터에 비고 필드가 없으면 추가
+                          const parsedWith비고 = Object.keys(parsed).reduce((acc, key) => {
+                            acc[key] = { ...parsed[key], 비고: parsed[key].비고 || '' }
+                            return acc
+                          }, {} as Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }>)
+                          setMonitoringData(parsedWith비고)
                           return
                         } catch (e) {
                           console.error('Failed to parse saved monitoring data', e)
@@ -1119,12 +1143,16 @@ export default function Dashboard() {
                       }
                     }
 
-                    const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean }> = {}
+                    const initialData: Record<string, { 통검노출: string; pdf노출: string; 완료: boolean; 비고: string }> = {}
                     dashboardData.tableData.forEach((row) => {
                       // 가장 최근 Run의 결과 찾기
                       const sortedRuns = [...(dashboardData.allRuns || [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
                       let latest통검노출 = row.csv통검노출 || 'N'
                       let latestPdf노출 = row.csvPdf노출 || 'N'
+                      
+                      // 현재 선택한 날짜의 myComment 찾기
+                      const currentRun = dashboardData.allRuns.find((r) => r.runDate === newDate)
+                      const currentComment = currentRun?.results.find((r) => r.targetId === row.id)?.myComment || ''
                       
                       for (const run of sortedRuns) {
                         const result = run.results.find((r) => r.targetId === row.id)
@@ -1139,6 +1167,7 @@ export default function Dashboard() {
                         통검노출: latest통검노출,
                         pdf노출: latestPdf노출,
                         완료: false,
+                        비고: currentComment || '',
                       }
                     })
                     setMonitoringData(initialData)
@@ -1166,6 +1195,7 @@ export default function Dashboard() {
                               targetId,
                               foundAcademicNaver: data.통검노출 === 'Y',
                               isPdf: data.pdf노출 === 'Y',
+                              myComment: data.비고?.trim() || null,
                             }),
                           })
 
@@ -1341,11 +1371,16 @@ export default function Dashboard() {
                         }
                       }
                       
+                      // 현재 선택한 날짜의 myComment 찾기
+                      const currentRun = dashboardData.allRuns.find((r) => r.runDate === monitoringModalDate)
+                      const currentComment = currentRun?.results.find((r) => r.targetId === row.id)?.myComment || ''
+                      
                       const data =
                         monitoringData[row.id] || {
                           통검노출: latest통검노출,
                           pdf노출: latestPdf노출,
                           완료: false,
+                          비고: currentComment || '',
                         }
 
                       const 통검변동 = row.csv통검노출 !== null && data.통검노출 !== row.csv통검노출
@@ -1395,40 +1430,19 @@ export default function Dashboard() {
                           )}
                         </td>
 
-                        <td
-                          className="border p-2 overflow-hidden text-ellipsis"
-                          style={{ width: monitoringColumnWidths.csv비고 }}
-                          title={(() => {
-                            // 현재 runDate의 myComment가 없으면 가장 최근 myComment 찾기
-                            const currentComment = row.myComment
-                            if (currentComment) return currentComment
-                            
-                            // allRuns에서 가장 최근 non-null myComment 찾기
-                            const sortedRuns = [...(dashboardData?.allRuns ?? [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
-                            for (const run of sortedRuns) {
-                              const result = run.results.find((r) => r.targetId === row.id)
-                              if (result?.myComment) {
-                                return result.myComment
-                              }
-                            }
-                            return ''
-                          })()}
-                        >
-                          {(() => {
-                            // 현재 runDate의 myComment가 없으면 가장 최근 myComment 찾기
-                            const currentComment = row.myComment
-                            if (currentComment) return currentComment
-                            
-                            // allRuns에서 가장 최근 non-null myComment 찾기
-                            const sortedRuns = [...(dashboardData?.allRuns ?? [])].sort((a, b) => b.runDate.localeCompare(a.runDate))
-                            for (const run of sortedRuns) {
-                              const result = run.results.find((r) => r.targetId === row.id)
-                              if (result?.myComment) {
-                                return result.myComment
-                              }
-                            }
-                            return '-'
-                          })()}
+                        <td className="border p-2" style={{ width: monitoringColumnWidths.csv비고 }}>
+                          <input
+                            type="text"
+                            value={data.비고 || ''}
+                            onChange={(e) => {
+                              setMonitoringData({
+                                ...monitoringData,
+                                [row.id]: { ...data, 비고: e.target.value },
+                              })
+                            }}
+                            placeholder="-"
+                            className="w-full px-2 py-1 text-sm border rounded"
+                          />
                         </td>
 
                         <td className="border p-2 text-center" style={{ width: monitoringColumnWidths.monitoring통검노출 }}>

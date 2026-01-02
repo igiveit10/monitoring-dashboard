@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { runDate: rawRunDate, targetId, foundAcademicNaver, isPdf, note } = body
+    const { runDate: rawRunDate, targetId, foundAcademicNaver, isPdf, myComment } = body
 
     if (!rawRunDate || !targetId) {
       console.error('[Monitoring API] Missing required fields:', { runDate: rawRunDate, targetId })
@@ -55,19 +55,19 @@ export async function POST(request: NextRequest) {
           foundAcademicNaver: foundAcademicNaver ?? false,
           isPdf: isPdf ?? false,
           checkedAt: new Date(),
+          myComment: myComment && myComment.trim() !== '' ? myComment.trim() : null,
         },
         create: {
           runId: run.id,
           targetId,
           foundAcademicNaver: foundAcademicNaver ?? false,
           isPdf: isPdf ?? false,
+          myComment: myComment && myComment.trim() !== '' ? myComment.trim() : null,
         },
       })
 
       const action = existingResult ? 'updated' : 'created'
-      console.log(`[Monitoring API] RunResult ${action}: runId=${run.id}, targetId=${targetId}, foundAcademicNaver=${result.foundAcademicNaver}, isPdf=${result.isPdf}, resultId=${result.id}`)
-      
-      // note 필드 제거됨 (DB에 컬럼 없음) - 업데이트 스킵
+      console.log(`[Monitoring API] RunResult ${action}: runId=${run.id}, targetId=${targetId}, foundAcademicNaver=${result.foundAcademicNaver}, isPdf=${result.isPdf}, myComment=${result.myComment || '(empty)'}, resultId=${result.id}`)
     } catch (upsertError: any) {
       console.error(`[Monitoring API] Upsert error for runId=${run.id}, targetId=${targetId}:`, upsertError)
       console.error(`[Monitoring API] Error code: ${upsertError.code}, message: ${upsertError.message}`)
