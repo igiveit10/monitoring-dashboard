@@ -27,7 +27,6 @@ export async function POST(request: NextRequest) {
     // Run 조회 또는 생성
     let run = await prisma.run.findFirst({
       where: { runDate },
-      orderBy: { createdAt: 'desc' }, // 최신 것 선택
     })
 
     if (!run) {

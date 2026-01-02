@@ -54,7 +54,6 @@ export async function GET(request: NextRequest) {
     if (runDate) {
       run = await prisma.run.findFirst({
         where: { runDate },
-        orderBy: { createdAt: 'desc' }, // 최신 것 선택
         include: {
           results: {
             select: {
@@ -181,7 +180,6 @@ export async function GET(request: NextRequest) {
     if (baselineRunDate) {
       baselineRun = await prisma.run.findFirst({
         where: { runDate: baselineRunDate },
-        orderBy: { createdAt: 'desc' }, // 최신 것 선택
         include: {
           results: true,
         },

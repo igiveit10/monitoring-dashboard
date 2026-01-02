@@ -13,7 +13,6 @@ export async function POST() {
     // 오늘 Run이 이미 있는지 확인
     let run = await prisma.run.findFirst({
       where: { runDate: today },
-      orderBy: { createdAt: 'desc' }, // 최신 것 선택
     })
 
     if (!run) {
